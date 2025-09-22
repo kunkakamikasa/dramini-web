@@ -1,33 +1,36 @@
-export type ApiResponse<T = unknown> = {
+export type ApiResult<T> = {
   ok: boolean;
-  data?: T;
-  error?: string;
-};
+  status: number;
+  data: T | null;
+  message?: string;
+} & Record<string, any>;
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
 
 export async function fetchApi<T = unknown>(
   path: string,
-  init: RequestInit = {}
-): Promise<ApiResponse<T>> {
-  try {
-    const res = await fetch(`${API_BASE}${path}`, {
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(init.headers || {}),
-      },
-      ...init,
-    });
+  options?: RequestInit
+): Promise<ApiResult<T>> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options?.headers || {}),
+    },
+    cache: 'no-store',
+  });
 
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      return { ok: false, error: (json as any)?.message || res.statusText };
-    }
-    return { ok: true, data: json as T };
-  } catch (e: any) {
-    return { ok: false, error: e?.message || 'Network error' };
-  }
+  let json: any = null;
+  try {
+    json = await res.json();
+  } catch {}
+
+  return {
+    ok: res.ok,
+    status: res.status,
+    data: (json ?? null) as T | null,
+    ...(typeof json === 'object' && json ? json : {}),
+  };
 }
 
 export function postApi<T = unknown>(path: string, body?: any) {
