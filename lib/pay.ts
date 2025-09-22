@@ -10,6 +10,7 @@ export const paymentPlans: PaymentPlan[] = [
     id: 'single-episode',
     name: 'Single Episode',
     type: 'single',
+    price: 0.99,
     priceCents: 99,
     features: [
       'Watch one episode',
@@ -22,6 +23,7 @@ export const paymentPlans: PaymentPlan[] = [
     id: 'full-season',
     name: 'Full Season',
     type: 'season',
+    price: 9.99,
     priceCents: 999,
     features: [
       'Watch entire season',
@@ -35,6 +37,7 @@ export const paymentPlans: PaymentPlan[] = [
     id: 'vip-monthly',
     name: 'VIP Monthly',
     type: 'monthly',
+    price: 19.99,
     priceCents: 1999,
     features: [
       'Unlimited access to all content',
@@ -51,6 +54,7 @@ export const paymentPlans: PaymentPlan[] = [
     id: 'vip-yearly',
     name: 'VIP Yearly',
     type: 'yearly',
+    price: 199.99,
     priceCents: 19999,
     features: [
       'Unlimited access to all content',

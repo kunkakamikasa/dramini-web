@@ -1,9 +1,8 @@
-'use client';
+'use client'
 
 import { useState } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
-import { Button } from './ui/button';
+import Link from 'next/link';
 import { Badge } from './ui/badge';
 import { Play, Lock, Star } from 'lucide-react';
 import { Poster, PosterCardProps } from '@/types';
@@ -15,10 +14,16 @@ export function PosterCard({ poster, index = 0, section = 'unknown', onWatch, on
 
   const handleCardClick = () => {
     analytics.posterClick(poster.id, index, section);
+    onWatch?.(poster);
+  };
+
+  const handlePlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    analytics.posterClick(poster.id, index, section);
+    onWatch?.(poster);
   };
 
   const handleUnlockClick = (e: React.MouseEvent) => {
-    e.preventDefault();
     e.stopPropagation();
     analytics.posterClick(poster.id, index, section);
     onUnlock?.(poster);
@@ -26,94 +31,68 @@ export function PosterCard({ poster, index = 0, section = 'unknown', onWatch, on
 
   return (
     <div 
-      className="group relative cursor-pointer transform transition-all duration-300 hover:scale-105"
+      className={cn(
+        "group relative cursor-pointer transition-all duration-300 hover:scale-105",
+        "w-full max-w-[200px] mx-auto"
+      )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleCardClick}
     >
-      {/* Poster Image */}
       <div className="aspect-[9/16] rounded-xl overflow-hidden shadow-card">
         <Image
-          src={poster.cover}
+          src={poster.cover || poster.poster}
           alt={poster.title}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-110"
-          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
         />
         
-        {/* VIP Badge */}
-        {poster.isVip && (
-          <div className="absolute top-3 right-3 bg-gradient-to-r from-secondary to-yellow-400 text-background px-2 py-1 rounded-full text-xs font-medium">
-            VIP
-          </div>
-        )}
-
-        {/* Rating Badge */}
-        {poster.rating && (
-          <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs flex items-center">
-            <Star className="w-3 h-3 mr-1 fill-current text-yellow-400" />
-            {poster.rating}
-          </div>
-        )}
-
-        {/* Custom Badges */}
-        {poster.badges && poster.badges.length > 0 && (
-          <div className="absolute bottom-3 left-3 flex flex-wrap gap-1">
-            {poster.badges.map((badge, idx) => (
-              <Badge key={idx} variant="secondary" className="text-xs">
-                {badge}
-              </Badge>
-            ))}
-          </div>
-        )}
-
-        {/* Hover Overlay */}
+        {/* Overlay */}
         <div className={cn(
-          'absolute inset-0 bg-black/60 flex flex-col justify-end p-4 transition-opacity duration-300',
-          isHovered ? 'opacity-100' : 'opacity-0'
+          "absolute inset-0 bg-black transition-opacity duration-300",
+          isHovered ? "opacity-60" : "opacity-0"
         )}>
-          <div className="space-y-3">
-            <div>
-              <h3 className="text-white font-semibold text-lg mb-1">{poster.title}</h3>
-              {poster.episodes && poster.freeEpisodes && (
-                <p className="text-gray-300 text-sm">
-                  {poster.freeEpisodes} free of {poster.episodes} episodes
-                </p>
-              )}
-              {poster.category && (
-                <Badge variant="secondary" className="mt-2 text-xs">
-                  {poster.category}
-                </Badge>
-              )}
-            </div>
-            
-            <div className="flex space-x-2">
-              <Link 
-                href={`/drama/${poster.slug}`} 
-                onClick={handleCardClick}
-                className="flex-1"
-              >
-                <Button 
-                  size="sm" 
-                  className="bg-primary hover:bg-primary/90 w-full"
-                >
-                  <Play className="w-4 h-4 mr-1" />
-                  Watch
-                </Button>
-              </Link>
-              {poster.locked && (
-                <Button 
-                  size="sm" 
-                  variant="secondary" 
-                  className="bg-gradient-to-r from-secondary to-yellow-400 text-background"
-                  onClick={handleUnlockClick}
-                >
-                  <Lock className="w-4 h-4 mr-1" />
-                  Unlock
-                </Button>
-              )}
-            </div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <button
+              onClick={handlePlayClick}
+              className="bg-white/20 backdrop-blur-sm rounded-full p-3 hover:bg-white/30 transition-colors"
+            >
+              <Play className="h-6 w-6 text-white fill-white" />
+            </button>
           </div>
         </div>
+
+        {/* Lock overlay for premium content */}
+        {poster.rating && poster.rating > 4.5 && (
+          <div className="absolute top-2 right-2">
+            <Badge variant="secondary" className="bg-yellow-500 text-black">
+              <Star className="h-3 w-3 mr-1" />
+              {poster.rating}
+            </Badge>
+          </div>
+        )}
+
+        {/* Premium lock */}
+        {poster.rating && poster.rating > 4.5 && (
+          <div className="absolute top-2 left-2">
+            <button
+              onClick={handleUnlockClick}
+              className="bg-black/50 backdrop-blur-sm rounded-full p-2 hover:bg-black/70 transition-colors"
+            >
+              <Lock className="h-4 w-4 text-white" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Title */}
+      <div className="mt-2 px-1">
+        <h3 className="text-sm font-medium text-white truncate group-hover:text-gray-300 transition-colors">
+          {poster.title}
+        </h3>
+        {poster.year && (
+          <p className="text-xs text-gray-400 mt-1">{poster.year}</p>
+        )}
       </div>
     </div>
   );

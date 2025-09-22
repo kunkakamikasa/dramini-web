@@ -1,203 +1,146 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Hero } from '@/components/Hero';
-import { Carousel } from '@/components/Carousel';
-import { CategoryChips } from '@/components/CategoryChips';
-import { PosterCard } from '@/components/PosterCard';
+import Link from 'next/link'
+import { fetchApi } from '@/lib/api'
+
+interface Movie {
+  id: string
+  title: string
+  poster: string
+  slug: string
+}
+
+interface Category {
+  id: string
+  name: string
+  slug: string
+  movies: Movie[]
+}
+
+interface HomeData {
+  trending: Movie[]
+  newReleases: Movie[]
+  categories: Category[]
+}
 
 export default function HomePage() {
-  const [data, setData] = useState({
+  const [data, setData] = useState<HomeData>({
     trending: [],
-    newRelease: [],
+    newReleases: [],
     categories: []
   })
   const [loading, setLoading] = useState(true)
-  const [apiError, setApiError] = useState(false)
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        
+        const [trendingRes, newReleaseRes, categoriesRes] = await Promise.all([
+          fetchApi<Movie[]>('/movies/trending'),
+          fetchApi<Movie[]>('/movies/new-releases'),
+          fetchApi<Category[]>('/categories')
+        ])
+
+        setData({
+          trending: trendingRes.ok ? trendingRes.data : [],
+          newReleases: newReleaseRes.ok ? newReleaseRes.data : [],
+          categories: categoriesRes.ok ? categoriesRes.data : []
+        })
+      } catch (error) {
+        console.error('获取数据失败:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     fetchData()
   }, [])
 
-  const fetchData = async () => {
-    try {
-      const API_BASE = 'http://localhost:3002/api/v1'
-      
-      // 先测试API是否可用
-      const healthResponse = await fetch(`${API_BASE}/health`)
-      if (!healthResponse.ok) {
-        throw new Error('API not available')
-      }
-
-      const [trendingRes, newReleaseRes, categoriesRes] = await Promise.all([
-        fetch(`${API_BASE}/public/sections/trending-now`).catch(() => ({ ok: false })),
-        fetch(`${API_BASE}/public/sections/new-release`).catch(() => ({ ok: false })),
-        fetch(`${API_BASE}/public/sections/popular-categories`).catch(() => ({ ok: false }))
-      ])
-
-      const [trendingData, newReleaseData, categoriesData] = await Promise.all([
-        trendingRes.ok ? trendingRes.json() : { ok: false },
-        newReleaseRes.ok ? newReleaseRes.json() : { ok: false },
-        categoriesRes.ok ? categoriesRes.json() : { ok: false }
-      ])
-
-      setData({
-        trending: trendingData.ok ? (trendingData.items || []) : [],
-        newRelease: newReleaseData.ok ? (newReleaseData.items || []) : [],
-        categories: categoriesData.ok ? (categoriesData.categories || []) : []
-      })
-      
-      setApiError(false)
-    } catch (error) {
-      console.error('API Error:', error)
-      setApiError(true)
-      // 使用模拟数据作为后备
-      setData({
-        trending: [],
-        newRelease: [],
-        categories: []
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-2xl font-bold mb-4">Loading Dramini...</div>
-          <div className="text-muted-foreground">Please wait while we load content</div>
-        </div>
-      </div>
-    )
-  }
-
-  if (apiError) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Service Unavailable</h1>
-          <p className="text-muted-foreground mb-4">
-            Please ensure the content API service is running on port 3002.
-          </p>
-          <button 
-            onClick={fetchData}
-            className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
-          >
-            Retry
-          </button>
-        </div>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">加载中...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen">
-      {/* 1. 轮播图 Hero Section */}
-      <Hero />
+    <div className="min-h-screen bg-gray-900">
+      {/* Hero Section */}
+      <div className="relative h-screen flex items-center justify-center">
+        <div className="absolute inset-0 bg-gradient-to-r from-black to-transparent z-10"></div>
+        <div className="relative z-20 text-center text-white">
+          <h1 className="text-6xl font-bold mb-4">Dramini</h1>
+          <p className="text-xl mb-8">发现精彩内容</p>
+          <Link 
+            href="/browse" 
+            className="bg-red-600 hover:bg-red-700 px-8 py-3 rounded-lg text-lg font-semibold transition-colors"
+          >
+            开始观看
+          </Link>
+        </div>
+      </div>
 
-      {/* 2. Trending Now */}
-      {data.trending.length > 0 && (
-        <section className="bg-gradient-to-b from-black to-background py-8 md:py-12">
-          <div className="max-w-screen-xl mx-auto px-4">
-            <Carousel 
-              items={data.trending} 
-              title="Trending Now"
-              itemsPerView={3}
-            />
-          </div>
-        </section>
-      )}
-
-      {/* 3. New Release */}
-      {data.newRelease.length > 0 && (
-        <section className="bg-gradient-to-b from-background to-black py-8 md:py-12">
-          <div className="max-w-screen-xl mx-auto px-4">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl md:text-3xl font-bold text-white">New Release</h2>
-              <a href="/browse" className="text-sm text-neutral-300 hover:text-white transition-colors">
-                View all ›
-              </a>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              {data.newRelease.map((poster, index) => (
-                <PosterCard 
-                  key={poster.id} 
-                  poster={poster} 
-                  index={index}
-                  section="new-release"
+      {/* Trending Section */}
+      <div className="px-8 py-12">
+        <h2 className="text-3xl font-bold text-white mb-6">热门内容</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          {data.trending.map((movie) => (
+            <Link key={movie.id} href={`/movie/${movie.slug}`}>
+              <div className="relative group cursor-pointer">
+                <img 
+                  src={movie.poster} 
+                  alt={movie.title}
+                  className="w-full h-64 object-cover rounded-lg transition-transform group-hover:scale-105"
                 />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* 4. Popular Categories */}
-      {data.categories.length > 0 && (
-        <section className="py-8 md:py-12">
-          <div className="max-w-screen-xl mx-auto px-4">
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">Popular Categories</h2>
-            
-            <div className="space-y-12">
-              {data.categories.map((category) => (
-                <div key={category.id}>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-white">{category.name}</h3>
-                    <a 
-                      href={`/browse?category=${category.slug}`} 
-                      className="text-sm text-neutral-300 hover:text-white transition-colors"
-                    >
-                      View all ›
-                    </a>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                    {category.movies.map((poster, index) => (
-                      <PosterCard 
-                        key={poster.id} 
-                        poster={poster} 
-                        index={index}
-                        section={`category-${category.slug}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* How It Works - 静态内容 */}
-      <section className="py-16 bg-card">
-        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">How It Works</h2>
-            <p className="text-muted-foreground text-lg">
-              Get started in three simple steps
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { id: '1', title: '注册账户', description: '创建您的专属账户' },
-              { id: '2', title: '选择内容', description: '浏览海量精彩内容' },
-              { id: '3', title: '开始观看', description: '随时随地享受观看' }
-            ].map((step, index) => (
-              <div key={step.id} className="text-center">
-                <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl font-bold text-primary-foreground">
-                    {index + 1}
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all rounded-lg flex items-center justify-center">
+                  <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity font-semibold">
+                    {movie.title}
                   </span>
                 </div>
-                <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
-                <p className="text-muted-foreground">{step.description}</p>
               </div>
-            ))}
-          </div>
+            </Link>
+          ))}
         </div>
-      </section>
+      </div>
+
+      {/* Categories Section */}
+      <div className="px-8 py-12">
+        <h2 className="text-3xl font-bold text-white mb-6">分类浏览</h2>
+        {data.categories.map((category) => (
+          <div key={category.id} className="mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-white">{category.name}</h3>
+              <Link 
+                href={`/browse?category=${category.slug}`}
+                className="text-red-400 hover:text-red-300 transition-colors"
+              >
+                查看全部
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {category.movies.map((movie, index) => (
+                <Link key={`${category.id}-${movie.id}-${index}`} href={`/movie/${movie.slug}`}>
+                  <div className="relative group cursor-pointer">
+                    <img 
+                      src={movie.poster} 
+                      alt={movie.title}
+                      className="w-full h-64 object-cover rounded-lg transition-transform group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all rounded-lg flex items-center justify-center">
+                      <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity font-semibold">
+                        {movie.title}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
-  );
+  )
 }

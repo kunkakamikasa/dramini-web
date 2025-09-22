@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect } from 'react';
-import { initAnalytics } from '@/lib/analytics';
+import { analytics } from '@/lib/analytics';
 
 export function AnalyticsInit() {
   useEffect(() => {
-    initAnalytics();
+    if (typeof window !== 'undefined') {
+      analytics.pageView(window.location.pathname, document.title);
+    }
   }, []);
 
   return null;

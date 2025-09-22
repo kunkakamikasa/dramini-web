@@ -1,150 +1,84 @@
+// 扩展 Window 接口
+declare global {
+  interface Window {
+    dataLayer: any[]
+  }
+}
+
 import { AnalyticsEvent } from '@/types';
 
 // Analytics event tracking
 export function ev(name: string, meta?: Record<string, any>) {
   if (typeof window !== 'undefined' && window.dataLayer) {
     const event: AnalyticsEvent = {
-      event: name,
-      ...meta
+      type: name,
+      data: meta,
+      timestamp: Date.now()
     };
     window.dataLayer.push(event);
   }
-  
-  // Also log to console in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Analytics Event:', name, meta);
-  }
 }
 
-// Predefined event functions
+// 页面浏览跟踪
+export function pageView(path: string, title?: string) {
+  ev('page_view', { path, title });
+}
+
+// 海报点击跟踪
+export function posterClick(titleId: string, index: number, section: string) {
+  ev('poster_click', { titleId, index, section });
+}
+
+// 海报展示跟踪
+export function posterImpression(titleId: string, index: number, section: string) {
+  ev('poster_impression', { titleId, index, section });
+}
+
+// 分类选择跟踪
+export function categorySelect(category: string) {
+  ev('category_select', { category });
+}
+
+// 英雄区域CTA点击跟踪
+export function heroCtaClick(cta: 'watch' | 'app', pos: 'hero') {
+  ev('hero_cta_click', { cta, pos });
+}
+
+// 支付墙打开跟踪
+export function paywallOpen(titleId: string, episode?: number) {
+  ev('paywall_open', { titleId, episode });
+}
+
+// 结账开始跟踪
+export function checkoutStart(planId: string, priceCents: number) {
+  ev('checkout_start', { planId, priceCents });
+}
+
+// 结账成功跟踪
+export function checkoutSuccess(planId: string, priceCents: number, sessionId: string) {
+  ev('checkout_success', { planId, priceCents, sessionId });
+}
+
+// 结账取消跟踪
+export function checkoutCancel(planId: string, priceCents: number) {
+  ev('checkout_cancel', { planId, priceCents });
+}
+
+// 错误跟踪
+export function error(error: string, context?: string) {
+  ev('error', { error, context });
+}
+
+// 默认导出 analytics 对象
 export const analytics = {
-  // Hero section events
-  heroCtaClick: (cta: 'watch' | 'app', pos: 'hero') => {
-    ev('hero_cta_click', { cta, pos });
-  },
-
-  // Poster events
-  posterImpression: (titleId: string, index: number, section: string) => {
-    ev('poster_impression', { titleId, index, section });
-  },
-
-  posterClick: (titleId: string, index: number, section: string) => {
-    ev('poster_click', { titleId, index, section });
-  },
-
-  // Category events
-  categorySelect: (category: string) => {
-    ev('category_select', { category });
-  },
-
-  // Paywall events
-  paywallOpen: (titleId: string, ep?: number) => {
-    ev('paywall_open', { titleId, ep });
-  },
-
-  paywallClose: (titleId: string, ep?: number) => {
-    ev('paywall_close', { titleId, ep });
-  },
-
-  // Payment events
-  checkoutStart: (plan: string, price: number) => {
-    ev('checkout_start', { plan, price });
-  },
-
-  checkoutSuccess: (plan: string, price: number, paymentId?: string) => {
-    ev('checkout_success', { plan, price, paymentId });
-  },
-
-  checkoutCancel: (plan: string, price: number) => {
-    ev('checkout_cancel', { plan, price });
-  },
-
-  // Player events
-  playerPlay: (titleId: string, ep: number) => {
-    ev('player_play', { titleId, ep });
-  },
-
-  playerPause: (titleId: string, ep: number, progressSec: number) => {
-    ev('player_pause', { titleId, ep, progressSec });
-  },
-
-  playerNextEp: (titleId: string, ep: number) => {
-    ev('player_next_ep', { titleId, ep });
-  },
-
-  playerComplete: (titleId: string, ep: number) => {
-    ev('player_complete', { titleId, ep });
-  },
-
-  // Search events
-  searchQuery: (query: string, results: number) => {
-    ev('search_query', { query, results });
-  },
-
-  searchResultClick: (query: string, titleId: string, position: number) => {
-    ev('search_result_click', { query, titleId, position });
-  },
-
-  // User events
-  userSignUp: (method: 'email' | 'google' | 'apple' | 'facebook') => {
-    ev('user_sign_up', { method });
-  },
-
-  userSignIn: (method: 'email' | 'google' | 'apple' | 'facebook') => {
-    ev('user_sign_in', { method });
-  },
-
-  userSignOut: () => {
-    ev('user_sign_out');
-  },
-
-  // Navigation events
-  pageView: (path: string, title?: string) => {
-    ev('page_view', { path, title });
-  },
-
-  // Error events
-  error: (error: string, context?: string) => {
-    ev('error', { error, context });
-  }
+  pageView,
+  posterClick,
+  posterImpression,
+  categorySelect,
+  heroCtaClick,
+  paywallOpen,
+  checkoutStart,
+  checkoutSuccess,
+  checkoutCancel,
+  error
 };
-
-// Initialize analytics (call this in your app)
-export function initAnalytics() {
-  if (typeof window !== 'undefined') {
-    // Initialize dataLayer if it doesn't exist
-    if (!window.dataLayer) {
-      window.dataLayer = [];
-    }
-    
-    // Track initial page view
-    analytics.pageView(window.location.pathname, document.title);
-  }
-}
-
-// Track page changes (for SPA navigation)
-export function trackPageChange(path: string, title?: string) {
-  analytics.pageView(path, title);
-}
-
-// Utility function to add data attributes to elements
-export function addAnalyticsData(element: HTMLElement, eventName: string, meta?: Record<string, any>) {
-  element.setAttribute('data-ev', eventName);
-  if (meta) {
-    element.setAttribute('data-meta', JSON.stringify(meta));
-  }
-}
-
-// Hook for React components to easily add analytics
-export function useAnalytics() {
-  const trackEvent = (eventName: string, meta?: Record<string, any>) => {
-    ev(eventName, meta);
-  };
-
-  const addEventData = (element: HTMLElement, eventName: string, meta?: Record<string, any>) => {
-    addAnalyticsData(element, eventName, meta);
-  };
-
-  return { trackEvent, addEventData };
-}
-

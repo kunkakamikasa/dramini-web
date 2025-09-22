@@ -1,60 +1,50 @@
-export type ApiResult<T> = {
-  ok: boolean;
-  status: number;
-  data: T | null;
-  message?: string;
-} & Record<string, any>;
+interface ApiResponse<T> {
+  ok: boolean
+  data: T
+  error?: string
+}
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
-
-export async function fetchApi<T = unknown>(
-  path: string,
-  options?: RequestInit
-): Promise<ApiResult<T>> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options?.headers || {}),
-    },
-    cache: 'no-store',
-  });
-
-  let json: any = null;
+export async function fetchApi<T>(endpoint: string): Promise<ApiResponse<T>> {
   try {
-    json = await res.json();
-  } catch {}
-
-  return {
-    ok: res.ok,
-    status: res.status,
-    data: (json ?? null) as T | null,
-    ...(typeof json === 'object' && json ? json : {}),
-  };
-}
-
-export function postApi<T = unknown>(path: string, body?: any) {
-  return fetchApi<T>(path, {
-    method: 'POST',
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-}
-
-export async function getBrowseData(params?: {
-  category?: string;
-  sort?: string;
-  page?: number;
-}) {
-  const qs = new URLSearchParams();
-  if (params?.category) qs.set('category', params.category);
-  if (params?.sort) qs.set('sort', params.sort);
-  if (typeof params?.page === 'number') qs.set('page', String(params.page));
-
-  const url = `${API_BASE}/browse${qs.toString() ? `?${qs.toString()}` : ''}`;
-
-  const res = await fetch(url, { cache: 'no-store' });
-  if (!res.ok) {
-    throw new Error(`getBrowseData failed: ${res.status} ${res.statusText}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}${endpoint}`)
+    
+    if (!response.ok) {
+      return {
+        ok: false,
+        data: null as T,
+        error: `HTTP ${response.status}`
+      }
+    }
+    
+    const data = await response.json()
+    return {
+      ok: true,
+      data: data
+    }
+  } catch (error) {
+    return {
+      ok: false,
+      data: null as T,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
   }
-  return res.json();
+}
+
+// 添加缺失的 getBrowseData 函数
+export async function getBrowseData(category?: string, page = 1, limit = 20) {
+  try {
+    let endpoint = `/movies?page=${page}&limit=${limit}`
+    if (category) {
+      endpoint += `&category=${category}`
+    }
+    
+    const response = await fetchApi(endpoint)
+    return response
+  } catch (error) {
+    return {
+      ok: false,
+      data: null,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
+  }
 }

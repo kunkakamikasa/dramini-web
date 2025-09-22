@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{\"app/drama/[slug]/page.tsx -> hls.js\":{\"id\":\"app/drama/[slug]/page.tsx -> hls.js\",\"files\":[\"static/chunks/_app-pages-browser_node_modules_hls_js_dist_hls_mjs.js\"]}}"
+self.__REACT_LOADABLE_MANIFEST="{}"
