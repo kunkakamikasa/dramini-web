@@ -1,0 +1,1 @@
+{"kind":"FETCH","data":{"headers":{"connection":"keep-alive","content-length":"22","content-type":"application/json; charset=utf-8","date":"Fri, 19 Sep 2025 10:17:19 GMT","keep-alive":"timeout=72","vary":"Origin"},"body":"eyJvayI6dHJ1ZSwiaXRlbXMiOltdfQ==","status":200,"url":"http://localhost:3002/api/v1/public/titles?category=all"},"revalidate":31536000,"tags":[]}

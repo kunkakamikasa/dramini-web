@@ -1,16 +1,11 @@
-.DS_Store
 node_modules/
-npm-debug.log*
-yarn-error.log*
-pnpm-lock.yaml
 dist/
 build/
-.next/
+coverage/
 .cache/
 .tmp/
 .env
 .env.*
-.vercel/
 .secrets/
 logs/
 *.log
