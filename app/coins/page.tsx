@@ -54,7 +54,7 @@ export default function CoinsPage() {
       ])
       
       if (packagesRes.ok) {
-        setPackages(packagesRes.packages || [])
+        setPackages((packagesRes as any).packages || [])
       }
       
       if (coinsRes.ok) {
