@@ -36,3 +36,22 @@ export function postApi<T = unknown>(path: string, body?: any) {
     body: body === undefined ? undefined : JSON.stringify(body),
   });
 }
+
+export async function getBrowseData(params?: {
+  category?: string;
+  sort?: string;
+  page?: number;
+}) {
+  const qs = new URLSearchParams();
+  if (params?.category) qs.set('category', params.category);
+  if (params?.sort) qs.set('sort', params.sort);
+  if (typeof params?.page === 'number') qs.set('page', String(params.page));
+
+  const url = `${API_BASE}/browse${qs.toString() ? `?${qs.toString()}` : ''}`;
+
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) {
+    throw new Error(`getBrowseData failed: ${res.status} ${res.statusText}`);
+  }
+  return res.json();
+}
