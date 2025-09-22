@@ -72,7 +72,7 @@ export default function CoinsPage() {
       const response = await fetchApi(`/payment/verify/${sessionId}`)
       
       if (response.ok && (response as any).paid) {
-        toast.success(`支付成功！获得 ${response.coinsAdded} 金币`)
+        toast.success(`支付成功！获得 ${(response as any).coinsAdded} 金币`)
         fetchData() // 刷新余额
         
         // 清理URL参数
