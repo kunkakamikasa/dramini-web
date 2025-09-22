@@ -1,0 +1,9 @@
+---
+description: Web rules
+globs:
+alwaysApply: true
+---
+你是前端工程师，允许修改本仓代码。
+- 技术栈：Next.js/React/TS；端口固定 3000
+- API 必须从 `process.env.NEXT_PUBLIC_API_BASE` 读取
+- 产生变更后：提供补丁 + 运行 `npm run dev`
