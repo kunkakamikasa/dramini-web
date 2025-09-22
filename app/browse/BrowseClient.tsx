@@ -17,7 +17,7 @@ export function BrowseClient({ category, initialData }: BrowseClientProps) {
   useEffect(() => {
     if (category !== 'all') {
       setLoading(true);
-      getBrowseData(category).then(({ data }) => {
+      getBrowseData({ category }).then(({ data }) => {
         setData(data);
         setLoading(false);
       });
