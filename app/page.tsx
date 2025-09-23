@@ -31,11 +31,16 @@ export default function HomePage() {
     categories: []
   })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true)
+        
+        // 调试信息
+        console.log('API Base URL:', process.env.NEXT_PUBLIC_API_BASE)
+        console.log('开始获取数据...')
         
         // 修复：使用正确的API端点
         const [titlesRes, bannersRes] = await Promise.all([
@@ -43,9 +48,15 @@ export default function HomePage() {
           fetchApi<any>('/public/hero-banners')
         ])
 
+        console.log('Titles response:', titlesRes)
+        console.log('Banners response:', bannersRes)
+
         // 处理数据映射
         const titles = titlesRes.ok ? titlesRes.data.titles || [] : []
         const banners = bannersRes.ok ? bannersRes.data.banners || [] : []
+
+        console.log('Processed titles:', titles)
+        console.log('Processed banners:', banners)
 
         // 将titles转换为Movie格式
         const movies: Movie[] = titles.map((title: any) => ({
@@ -54,6 +65,8 @@ export default function HomePage() {
           poster: title.coverUrl || 'https://images.unsplash.com/photo-1748091301969-578c45de4dea?w=400&h=600&fit=crop',
           slug: title.slug
         }))
+
+        console.log('Mapped movies:', movies)
 
         // 模拟分类数据（暂时使用所有影片）
         const categories: Category[] = [{
@@ -68,10 +81,15 @@ export default function HomePage() {
           newReleases: movies.slice(0, 6), // 取前6个作为新发布
           categories: categories
         })
+        
+        console.log('数据设置完成')
+        setError(null)
       } catch (error) {
         console.error('获取数据失败:', error)
+        setError(error instanceof Error ? error.message : '获取数据失败')
       } finally {
         setLoading(false)
+        console.log('加载完成')
       }
     }
 
@@ -82,6 +100,17 @@ export default function HomePage() {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-white text-xl">加载中...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">
+          <div>错误: {error}</div>
+          <div className="text-sm mt-2">API Base URL: {process.env.NEXT_PUBLIC_API_BASE || 'undefined'}</div>
+        </div>
       </div>
     )
   }
