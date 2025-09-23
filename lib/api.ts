@@ -33,7 +33,7 @@ export async function fetchApi<T>(endpoint: string): Promise<ApiResponse<T>> {
 // 添加缺失的 getBrowseData 函数
 export async function getBrowseData(category?: string, page = 1, limit = 20) {
   try {
-    let endpoint = `/movies?page=${page}&limit=${limit}`
+    let endpoint = `/public/titles?page=${page}&limit=${limit}`
     if (category) {
       endpoint += `&category=${category}`
     }
