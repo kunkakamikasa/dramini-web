@@ -43,17 +43,15 @@ export default function HomePage() {
         console.log('开始获取数据...')
         
         // 修复：使用正确的API端点
-        const [titlesRes, bannersRes] = await Promise.all([
-          fetchApi<any>('/public/titles'),
-          fetchApi<any>('/public/hero-banners')
-        ])
+        const titlesRes = await fetchApi<any>('/public/titles')
+        const bannersRes = await fetchApi<any>('/public/hero-banners')
 
         console.log('Titles response:', titlesRes)
         console.log('Banners response:', bannersRes)
 
-        // 处理数据映射
-        const titles = titlesRes.ok ? titlesRes.data.titles || [] : []
-        const banners = bannersRes.ok ? bannersRes.data.banners || [] : []
+        // 确保即使API失败也能继续
+        const titles = titlesRes.ok ? titlesRes.data?.titles || [] : []
+        const banners = bannersRes.ok ? bannersRes.data?.banners || [] : []
 
         console.log('Processed titles:', titles)
         console.log('Processed banners:', banners)
