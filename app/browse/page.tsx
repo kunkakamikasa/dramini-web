@@ -31,10 +31,22 @@ export default function BrowsePage() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3002/api/v1'}/public/titles`)
       const data = await response.json()
-      
-      if (data.ok) {
-        setTitles(data.items || [])
-      }
+
+      console.log('Browse API response:', data)
+
+      // 映射API数据到组件期望的格式
+      const mappedTitles = (data.titles || []).map((title: any) => ({
+        id: title.id,
+        slug: title.slug,
+        title: title.mainTitle || title.name,
+        cover: title.coverUrl || title.coverImageId || 'https://images.unsplash.com/photo-1748091301969-578c45de4dea?w=400&h=600&fit=crop',
+        rating: title.rating,
+        tags: [], // 暂时为空
+        description: title.subTitle || title.synopsis,
+        episodes: title.episodes?.length || 0
+      }))
+
+      setTitles(mappedTitles)
     } catch (error) {
       console.error('Failed to fetch titles:', error)
     } finally {
