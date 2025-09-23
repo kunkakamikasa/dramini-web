@@ -66,7 +66,7 @@ export default function HomePage() {
         const movies: Movie[] = titles.map((title: any) => ({
           id: title.id,
           title: title.mainTitle || title.name,
-          poster: title.coverUrl || 'https://images.unsplash.com/photo-1748091301969-578c45de4dea?w=400&h=600&fit=crop',
+          poster: title.coverUrl || title.coverImageId || 'https://images.unsplash.com/photo-1748091301969-578c45de4dea?w=400&h=600&fit=crop',
           slug: title.slug
         }))
 
