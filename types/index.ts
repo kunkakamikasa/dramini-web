@@ -8,6 +8,11 @@ export interface Poster {
   rating?: number
   duration?: string
   description?: string
+  // 添加实际数据库字段
+  name?: string // 对应 mainTitle
+  synopsis?: string // 对应 subTitle
+  coverImageId?: string // 对应 coverUrl
+  status?: string // 对应 isOnline
 }
 
 export interface Category {
@@ -93,4 +98,21 @@ export interface AnalyticsEvent {
   type: string
   data: any
   timestamp: number
+}
+
+export interface Title {
+  id: string
+  name: string // 主字段
+  slug: string
+  synopsis?: string
+  coverImageId?: string
+  status: string // DRAFT/PUBLISHED
+  language: string
+  createdAt: string
+  updatedAt: string
+  // 前端期望的字段（通过映射获得）
+  mainTitle?: string // 映射自 name
+  subTitle?: string // 映射自 synopsis
+  coverUrl?: string // 映射自 coverImageId
+  isOnline?: boolean // 映射自 status === 'PUBLISHED'
 }
