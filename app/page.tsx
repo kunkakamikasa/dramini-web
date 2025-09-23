@@ -35,6 +35,12 @@ export default function HomePage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      const timeout = setTimeout(() => {
+        console.error('API调用超时')
+        setLoading(false)
+        setError('API调用超时')
+      }, 10000) // 10秒超时
+
       try {
         setLoading(true)
         
@@ -86,6 +92,7 @@ export default function HomePage() {
         console.error('获取数据失败:', error)
         setError(error instanceof Error ? error.message : '获取数据失败')
       } finally {
+        clearTimeout(timeout)
         setLoading(false)
         console.log('加载完成')
       }
