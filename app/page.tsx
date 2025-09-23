@@ -37,16 +37,36 @@ export default function HomePage() {
       try {
         setLoading(true)
         
-        const [trendingRes, newReleaseRes, categoriesRes] = await Promise.all([
-          fetchApi<Movie[]>('/movies/trending'),
-          fetchApi<Movie[]>('/movies/new-releases'),
-          fetchApi<Category[]>('/categories')
+        // 修复：使用正确的API端点
+        const [titlesRes, bannersRes] = await Promise.all([
+          fetchApi<any>('/public/titles'),
+          fetchApi<any>('/public/hero-banners')
         ])
 
+        // 处理数据映射
+        const titles = titlesRes.ok ? titlesRes.data.titles || [] : []
+        const banners = bannersRes.ok ? bannersRes.data.banners || [] : []
+
+        // 将titles转换为Movie格式
+        const movies: Movie[] = titles.map((title: any) => ({
+          id: title.id,
+          title: title.mainTitle || title.name,
+          poster: title.coverUrl || 'https://images.unsplash.com/photo-1748091301969-578c45de4dea?w=400&h=600&fit=crop',
+          slug: title.slug
+        }))
+
+        // 模拟分类数据（暂时使用所有影片）
+        const categories: Category[] = [{
+          id: 'all',
+          name: '全部内容',
+          slug: 'all',
+          movies: movies
+        }]
+
         setData({
-          trending: trendingRes.ok ? trendingRes.data : [],
-          newReleases: newReleaseRes.ok ? newReleaseRes.data : [],
-          categories: categoriesRes.ok ? categoriesRes.data : []
+          trending: movies.slice(0, 6), // 取前6个作为热门
+          newReleases: movies.slice(0, 6), // 取前6个作为新发布
+          categories: categories
         })
       } catch (error) {
         console.error('获取数据失败:', error)
@@ -88,7 +108,7 @@ export default function HomePage() {
         <h2 className="text-3xl font-bold text-white mb-6">热门内容</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {data.trending.map((movie) => (
-            <Link key={movie.id} href={`/movie/${movie.slug}`}>
+            <Link key={movie.id} href={`/drama/${movie.slug}`}>
               <div className="relative group cursor-pointer">
                 <img 
                   src={movie.poster} 
@@ -122,7 +142,7 @@ export default function HomePage() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {category.movies.map((movie, index) => (
-                <Link key={`${category.id}-${movie.id}-${index}`} href={`/movie/${movie.slug}`}>
+                <Link key={`${category.id}-${movie.id}-${index}`} href={`/drama/${movie.slug}`}>
                   <div className="relative group cursor-pointer">
                     <img 
                       src={movie.poster} 
