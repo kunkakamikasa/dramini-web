@@ -30,7 +30,7 @@ export default function SignUpPage() {
     setError('')
 
     try {
-      const response = await fetch('http://localhost:3002/api/v1/auth/signup', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3002/api/v1'}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, password: formData.password, name: formData.name })

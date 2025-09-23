@@ -72,7 +72,7 @@ export default function PaymentModal({
   const fetchPaymentPackages = async () => {
     try {
       setLoadingPackages(true)
-      const response = await fetch('http://localhost:3002/api/v1/payment-packages')
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3002/api/v1'}/payment-packages`)
       const data = await response.json()
       
       if (data.ok && data.packages) {

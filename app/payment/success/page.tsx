@@ -21,7 +21,7 @@ function PaymentSuccessContent() {
 
   const verifyPayment = async (sessionId: string) => {
     try {
-      const response = await fetch(`http://localhost:3002/api/v1/payment/verify/${sessionId}`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3002/api/v1'}/payment/verify/${sessionId}`)
       const data = await response.json()
       
       setPaymentInfo(data)

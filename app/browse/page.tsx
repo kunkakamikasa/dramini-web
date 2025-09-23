@@ -29,7 +29,7 @@ export default function BrowsePage() {
 
   const fetchTitles = async () => {
     try {
-      const response = await fetch('http://localhost:3002/api/v1/public/titles')
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3002/api/v1'}/public/titles`)
       const data = await response.json()
       
       if (data.ok) {
