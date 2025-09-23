@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { fetchApi } from '@/lib/api'
+import { Header } from '@/components/Header'
+import { Hero } from '@/components/Hero'
+import { Footer } from '@/components/Footer'
 
 interface Movie {
   id: string
@@ -39,23 +42,20 @@ export default function HomePage() {
         console.error('API调用超时')
         setLoading(false)
         setError('API调用超时')
-      }, 10000) // 10秒超时
+      }, 10000)
 
       try {
         setLoading(true)
         
-        // 调试信息
         console.log('API Base URL:', process.env.NEXT_PUBLIC_API_BASE)
         console.log('开始获取数据...')
         
-        // 修复：使用正确的API端点
         const titlesRes = await fetchApi<any>('/public/titles')
         const bannersRes = await fetchApi<any>('/public/hero-banners')
 
         console.log('Titles response:', titlesRes)
         console.log('Banners response:', bannersRes)
 
-        // 确保即使API失败也能继续
         const titles = titlesRes.ok ? titlesRes.data?.titles || [] : []
         const banners = bannersRes.ok ? bannersRes.data?.banners || [] : []
 
@@ -72,7 +72,7 @@ export default function HomePage() {
 
         console.log('Mapped movies:', movies)
 
-        // 模拟分类数据（暂时使用所有影片）
+        // 模拟分类数据
         const categories: Category[] = [{
           id: 'all',
           name: '全部内容',
@@ -81,8 +81,8 @@ export default function HomePage() {
         }]
 
         setData({
-          trending: movies.slice(0, 6), // 取前6个作为热门
-          newReleases: movies.slice(0, 6), // 取前6个作为新发布
+          trending: movies.slice(0, 6),
+          newReleases: movies.slice(0, 6),
           categories: categories
         })
         
@@ -122,22 +122,13 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      {/* Hero Section */}
-      <div className="relative h-screen flex items-center justify-center">
-        <div className="absolute inset-0 bg-gradient-to-r from-black to-transparent z-10"></div>
-        <div className="relative z-20 text-center text-white">
-          <h1 className="text-6xl font-bold mb-4">Dramini</h1>
-          <p className="text-xl mb-8">发现精彩内容</p>
-          <Link 
-            href="/browse" 
-            className="bg-red-600 hover:bg-red-700 px-8 py-3 rounded-lg text-lg font-semibold transition-colors"
-          >
-            开始观看
-          </Link>
-        </div>
-      </div>
+      {/* 顶部导航 */}
+      <Header />
+      
+      {/* 轮播图 */}
+      <Hero />
 
-      {/* Trending Section */}
+      {/* 热门内容 */}
       <div className="px-8 py-12">
         <h2 className="text-3xl font-bold text-white mb-6">热门内容</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -160,7 +151,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Categories Section */}
+      {/* 分类浏览 */}
       <div className="px-8 py-12">
         <h2 className="text-3xl font-bold text-white mb-6">分类浏览</h2>
         {data.categories.map((category) => (
@@ -195,6 +186,9 @@ export default function HomePage() {
           </div>
         ))}
       </div>
+
+      {/* 底部 */}
+      <Footer />
     </div>
   )
 }

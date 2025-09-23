@@ -37,9 +37,19 @@ export function Hero() {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/public/hero-banners`);
         if (response.ok) {
           const result = await response.json();
-          if (result.ok && result.data && result.data.length > 0) {
-            setHeroItems(result.data);
-            console.log('轮播图数据加载成功:', result.data);
+          console.log('Hero banners API response:', result);
+          
+          if (result.banners && result.banners.length > 0) {
+            // 映射API数据到HeroItem格式
+            const mappedBanners = result.banners.map((banner: any) => ({
+              id: banner.id,
+              slug: banner.movieId || 'default',
+              title: banner.title || 'Untitled',
+              tagline: banner.subtitle || '',
+              backdrop: banner.imageUrl || 'https://images.unsplash.com/photo-1748091301969-578c45de4dea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920'
+            }));
+            setHeroItems(mappedBanners);
+            console.log('轮播图数据加载成功:', mappedBanners);
           }
         }
       } catch (error) {
@@ -100,59 +110,69 @@ export function Hero() {
       />
       
       {/* 渐变遮罩 */}
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/40 via-black/20 to-black/70" />
-      <div className="absolute inset-y-0 left-0 w-1/2 md:w-2/3 bg-gradient-to-r from-black/70 to-transparent" />
-
-      {/* 文案区域 */}
-      <div className="relative z-10 h-full">
-        <div className="mx-auto max-w-screen-xl h-full px-4 flex items-end md:items-center">
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+      
+      {/* 内容 */}
+      <div className="relative z-10 flex items-center h-full">
+        <div className="container mx-auto px-6 lg:px-8">
           <motion.div
             key={item.id}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35 }}
-            className="pb-10 md:pb-0"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="max-w-2xl"
           >
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-white">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
               {item.title}
             </h1>
+            
             {item.tagline && (
-              <p className="mt-3 text-base md:text-lg text-neutral-300">{item.tagline}</p>
+              <p className="text-lg md:text-xl text-gray-200 mb-8 leading-relaxed">
+                {item.tagline}
+              </p>
             )}
-            <div className="mt-6 flex gap-3">
+            
+            <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 href={`/drama/${item.slug}`}
-                className="inline-flex items-center gap-2 rounded-2xl bg-white text-black px-5 py-3 font-semibold hover:bg-gray-100 transition-colors"
                 onClick={handlePlayClick}
-                data-ev="hero_play_click"
-                data-meta={JSON.stringify({ id: item.id })}
+                className="inline-flex items-center justify-center px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors duration-200"
               >
-                ▶ Play
+                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M8 5v10l8-5-8-5z"/>
+                </svg>
+                立即观看
               </Link>
-              <Link
-                href="/browse"
-                className="inline-flex items-center gap-2 rounded-2xl bg-primary text-white px-5 py-3 font-semibold hover:bg-primary/90 transition-colors"
+              
+              <button
                 onClick={handleWatchFreeClick}
-                data-ev="hero_watchfree_click"
+                className="inline-flex items-center justify-center px-8 py-3 bg-transparent border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-black transition-colors duration-200"
               >
-                Watch Free
-              </Link>
+                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"/>
+                </svg>
+                免费试看
+              </button>
             </div>
           </motion.div>
         </div>
       </div>
-
-      {/* 轮播指示点 */}
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
-        {heroItems.map((_, i) => (
-          <button
-            key={i}
-            aria-label={`Go to slide ${i + 1}`}
-            onClick={() => setIdx(i)}
-            className={`h-2 rounded-full transition-all ${i === idx ? 'w-8 bg-white' : 'w-2 bg-white/60 hover:bg-white/80'}`}
-          />
-        ))}
-      </div>
+      
+      {/* 轮播指示器 */}
+      {heroItems.length > 1 && (
+        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2">
+          {heroItems.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setIdx(index)}
+              className={`w-3 h-3 rounded-full transition-colors duration-200 ${
+                index === idx ? 'bg-white' : 'bg-white/50 hover:bg-white/75'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
