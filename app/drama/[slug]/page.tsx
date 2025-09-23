@@ -93,7 +93,7 @@ export default function DramaPage() {
   const fetchTitleData = async () => {
     try {
       setDebugInfo('Fetching data...')
-      const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3002/api/v1'
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://dramini-api.onrender.com/api/v1'
       
       const titlesResponse = await fetch(`${API_BASE}/public/titles`)
       const titlesData = await titlesResponse.json()
@@ -560,7 +560,7 @@ function PaymentModal({ episode, title, onClose }: {
 
   const fetchPaymentPackages = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3002/api/v1'}/payment-packages`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'https://dramini-api.onrender.com/api/v1'}/payment-packages`)
       const data = await response.json()
       
       if (data.ok && data.packages) {
