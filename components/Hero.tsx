@@ -43,7 +43,7 @@ export function Hero() {
             // 映射API数据到HeroItem格式
             const mappedBanners = result.banners.map((banner: any) => ({
               id: banner.id,
-              slug: banner.movieId || 'default',
+              slug: banner.movieId || banner.id || 'default', // 优先使用movieId，其次使用id
               title: banner.title || 'Untitled',
               tagline: banner.subtitle || '',
               backdrop: banner.imageUrl || 'https://images.unsplash.com/photo-1748091301969-578c45de4dea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920'
