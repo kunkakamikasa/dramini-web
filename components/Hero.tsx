@@ -1,36 +1,22 @@
-'use client';
+'use client'
 
-import Image from 'next/image';
-import { useEffect, useState, useRef } from 'react';
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { analytics } from '@/lib/analytics';
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
 
-type HeroItem = {
-  id: string;
-  slug: string;
-  title: string;
-  tagline?: string;
-  backdrop: string;
-};
+interface HeroItem {
+  id: string
+  slug: string
+  title: string
+  tagline: string
+  backdrop: string
+}
 
-// 默认轮播图（作为后备）
-const DEFAULT_HERO_ITEMS: HeroItem[] = [
-  { 
-    id: 'default', 
-    slug: 'default',
-    title: 'Welcome to Dramini', 
-    tagline: 'Discover amazing content', 
-    backdrop: 'https://images.unsplash.com/photo-1748091301969-578c45de4dea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920'
-  }
-];
+export default function Hero() {
+  const [heroItems, setHeroItems] = useState<HeroItem[]>([])
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
 
-export function Hero() {
-  const [heroItems, setHeroItems] = useState<HeroItem[]>(DEFAULT_HERO_ITEMS);
-  const [idx, setIdx] = useState(0);
-  const timer = useRef<number | null>(null);
-
-  // 从API获取轮播图数据
   useEffect(() => {
     async function fetchHeroBanners() {
       try {
@@ -40,101 +26,105 @@ export function Hero() {
           console.log('Hero banners API response:', result);
           
           if (result.banners && result.banners.length > 0) {
-            // 映射API数据到HeroItem格式
-            const mappedBanners = result.banners.map((banner: any) => ({
-              id: banner.id,
-              slug: banner.movieId || banner.id || 'default', // 优先使用movieId，其次使用id
-              title: banner.title || 'Untitled',
-              tagline: banner.subtitle || '',
-              backdrop: banner.imageUrl || 'https://images.unsplash.com/photo-1748091301969-578c45de4dea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920'
-            }));
-            setHeroItems(mappedBanners);
-            console.log('轮播图数据加载成功:', mappedBanners);
+            // 获取titles数据以获取正确的slug
+            const titlesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/public/titles`);
+            const titlesResult = await titlesResponse.json();
+            
+            if (titlesResult.titles && titlesResult.titles.length > 0) {
+              // 创建movieId到slug的映射
+              const movieSlugMap = new Map();
+              titlesResult.titles.forEach((title: any) => {
+                movieSlugMap.set(title.id, title.slug);
+              });
+              
+              // 映射API数据到HeroItem格式，使用正确的slug
+              const mappedBanners = result.banners.map((banner: any) => ({
+                id: banner.id,
+                slug: movieSlugMap.get(banner.movieId) || banner.movieId || 'default',
+                title: banner.title || 'Untitled',
+                tagline: banner.subtitle || '',
+                backdrop: banner.imageUrl || 'https://images.unsplash.com/photo-1748091301969-578c45de4dea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1920'
+              }));
+              setHeroItems(mappedBanners);
+              console.log('轮播图数据加载成功:', mappedBanners);
+            }
           }
         }
       } catch (error) {
         console.error('Failed to fetch hero banners:', error);
         // 使用默认数据
+      } finally {
+        setIsLoading(false);
       }
     }
-
     fetchHeroBanners();
   }, []);
 
   useEffect(() => {
-    // 自动轮播：5s 切换
-    const play = () => {
-      timer.current = window.setInterval(() => {
-        setIdx(i => (i + 1) % heroItems.length);
+    if (heroItems.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % heroItems.length);
       }, 5000);
-    };
-    const stop = () => { 
-      if (timer.current) { 
-        clearInterval(timer.current); 
-        timer.current = null; 
-      } 
-    };
-    play();
-    const onVis = () => (document.hidden ? stop() : play());
-    document.addEventListener('visibilitychange', onVis);
-    return () => { 
-      stop(); 
-      document.removeEventListener('visibilitychange', onVis); 
-    };
-  }, [heroItems.length]);
-
-  const item = heroItems[idx];
+      return () => clearInterval(interval);
+    }
+  }, [heroItems]);
 
   const handlePlayClick = () => {
-    analytics.heroCtaClick('watch', 'hero');
+    console.log('Play button clicked');
   };
 
   const handleWatchFreeClick = () => {
-    analytics.heroCtaClick('watch', 'hero');
+    console.log('Watch free button clicked');
   };
 
+  if (isLoading) {
+    return (
+      <div className="relative h-[70vh] bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">加载中...</div>
+      </div>
+    );
+  }
+
+  if (heroItems.length === 0) {
+    return (
+      <div className="relative h-[70vh] bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">暂无轮播图</div>
+      </div>
+    );
+  }
+
+  const currentItem = heroItems[currentIndex];
+
   return (
-    <section 
-      className="relative w-full h-[72vh] md:h-[78vh] lg:h-[82vh] overflow-hidden"
-      role="region"
-      aria-roledescription="carousel"
-    >
-      {/* 背景图 */}
-      <Image
-        src={item.backdrop}
-        alt={item.title}
-        fill
-        priority
-        sizes="100vw"
-        className="object-cover"
-      />
-      
-      {/* 渐变遮罩 */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
-      
+    <div className="relative h-[70vh] overflow-hidden">
+      {/* 背景图片 */}
+      <div className="absolute inset-0">
+        <Image
+          src={currentItem.backdrop}
+          alt={currentItem.title}
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-black bg-opacity-50" />
+      </div>
+
       {/* 内容 */}
-      <div className="relative z-10 flex items-center h-full">
-        <div className="container mx-auto px-6 lg:px-8">
-          <motion.div
-            key={item.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-            className="max-w-2xl"
-          >
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
-              {item.title}
+      <div className="relative z-10 h-full flex items-center">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl">
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
+              {currentItem.title}
             </h1>
-            
-            {item.tagline && (
-              <p className="text-lg md:text-xl text-gray-200 mb-8 leading-relaxed">
-                {item.tagline}
+            {currentItem.tagline && (
+              <p className="text-lg md:text-xl text-gray-200 mb-8">
+                {currentItem.tagline}
               </p>
             )}
             
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
-                href={`/drama/${item.slug}`}
+                href={`/drama/${currentItem.slug}`}
                 onClick={handlePlayClick}
                 className="inline-flex items-center justify-center px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors duration-200"
               >
@@ -154,25 +144,24 @@ export function Hero() {
                 免费试看
               </button>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
-      
+
       {/* 轮播指示器 */}
       {heroItems.length > 1 && (
-        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2">
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2">
           {heroItems.map((_, index) => (
             <button
               key={index}
-              onClick={() => setIdx(index)}
+              onClick={() => setCurrentIndex(index)}
               className={`w-3 h-3 rounded-full transition-colors duration-200 ${
-                index === idx ? 'bg-white' : 'bg-white/50 hover:bg-white/75'
+                index === currentIndex ? 'bg-white' : 'bg-white bg-opacity-50'
               }`}
-              aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>
       )}
-    </section>
-  );
+    </div>
+  )
 }
