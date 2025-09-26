@@ -8,7 +8,8 @@ const nextConfig = {
       'img.baidu.com',
       'bkimg.cdn.bcebos.com',
       'picsum.photos',
-      'localhost'
+      'localhost',
+      'imagedelivery.net'
     ],
     formats: ['image/webp', 'image/avif'],
   },
