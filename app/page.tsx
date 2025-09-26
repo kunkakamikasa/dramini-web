@@ -56,8 +56,8 @@ export default function HomePage() {
         console.log('Titles response:', titlesRes)
         console.log('Banners response:', bannersRes)
 
-        const titles = titlesRes.ok ? titlesRes.data?.titles || [] : []
-        const banners = bannersRes.ok ? bannersRes.data?.banners || [] : []
+        const titles = titlesRes.ok ? titlesRes.data.titles || [] : []
+        const banners = bannersRes.ok ? bannersRes.data.banners || [] : []
 
         console.log('Processed titles:', titles)
         console.log('Processed banners:', banners)

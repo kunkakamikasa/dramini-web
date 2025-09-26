@@ -98,30 +98,32 @@ export default function DramaPage() {
       const titlesResponse = await fetch(`${API_BASE}/public/titles`)
       const titlesData = await titlesResponse.json()
       
-      if (!titlesData.ok) {
-        setDebugInfo('API Error: ' + (titlesData.error || 'Unknown'))
+      if (!titlesData.titles) {
+        setDebugInfo('API Error: No titles data')
         return
       }
       
-      const titles = titlesData.items || []
+      const titles = titlesData.titles || []
       const title = titles.find((t: any) => t.slug === slug)
       
       if (!title) {
-        setDebugInfo('Title not found')
+        setDebugInfo('Title not found for slug: ' + slug)
         return
       }
       
-      const response = await fetch(`${API_BASE}/public/titles/${title.id}/detail`)
-      const data = await response.json()
-      
-      if (!data.ok) {
-        setDebugInfo('Detail API Error')
-        return
-      }
-      
-      setTitleData(data.data)
-      if (data.data.episodes && data.data.episodes.length > 0) {
-        setCurrentEpisode(data.data.episodes[0])
+      // 直接使用title数据，不需要额外的详情API
+      setTitleData({
+        id: title.id,
+        slug: title.slug,
+        name: title.name,
+        synopsis: title.synopsis,
+        coverUrl: title.coverUrl,
+        episodes: title.episodes || [],
+        totalEpisodes: title.episodes?.length || 0,
+        seriesPriceCoins: 0
+      })
+      if (title.episodes && title.episodes.length > 0) {
+        setCurrentEpisode(title.episodes[0])
         setDebugInfo('Ready!')
       }
     } catch (error: any) {
