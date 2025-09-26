@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { fetchApi } from '@/lib/api'
 import { Header } from '@/components/Header'
-import { Hero } from '@/components/Hero'
+import Hero from '@/components/Hero'
 import { Footer } from '@/components/Footer'
 
 interface Movie {
