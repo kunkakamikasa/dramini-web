@@ -180,13 +180,13 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Send verification code error:', error)
     console.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+      name: (error as Error).name
     })
     return NextResponse.json({ 
       error: 'Failed to send verification code',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      details: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined
     }, { status: 500 })
   }
 }
