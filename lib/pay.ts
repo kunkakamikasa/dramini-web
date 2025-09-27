@@ -140,16 +140,16 @@ export async function startPayPalCheckout(payload: { tierKey: string; userId: st
 // 获取金币套餐列表
 export async function getPaymentTiers() {
   try {
-    const response = await fetch(`${API_BASE}/payment/tiers`);
+    const response = await fetch(`${API_BASE}/payment-packages`);
     
     if (!response.ok) {
-      throw new Error(`Failed to fetch payment tiers: ${response.status} ${response.statusText}`);
+      throw new Error(`Failed to fetch payment packages: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
-    return data.tiers;
+    return data;
   } catch (error) {
-    console.error('Get payment tiers error:', error);
+    console.error('Get payment packages error:', error);
     throw error;
   }
 }

@@ -601,20 +601,20 @@ function PaymentModal({ episode, title, onClose }: {
   const fetchPaymentPackages = async () => {
     try {
       const { getPaymentTiers } = await import('@/lib/pay')
-      const tiers = await getPaymentTiers()
+      const data = await getPaymentTiers()
       
-      if (tiers && tiers.all) {
-        const formattedPackages = tiers.all.map((tier: any) => ({
-          id: tier.key,
-          coins: tier.coins,
-          bonus: tier.bonusCoins,
-          price: tier.priceCents / 100,
-          discount: tier.bonusCoins > 0 ? `+${Math.round((tier.bonusCoins / tier.coins) * 100)}%` : null,
-          isNewUser: tier.isFirstTime,
-          name: tier.name,
-          description: tier.description,
-          bgColor: tier.isFirstTime ? 'bg-gradient-to-r from-red-500 to-pink-500' : 'bg-gray-700',
-          badgeColor: tier.isFirstTime ? 'bg-yellow-500 text-black' : 'bg-orange-500 text-white'
+      if (data && data.packages) {
+        const formattedPackages = data.packages.map((pkg: any) => ({
+          id: pkg.id,
+          coins: pkg.coins,
+          bonus: pkg.bonus,
+          price: pkg.price,
+          discount: pkg.discount,
+          isNewUser: pkg.isNewUser,
+          name: pkg.name,
+          description: pkg.description,
+          bgColor: pkg.isNewUser ? 'bg-gradient-to-r from-red-500 to-pink-500' : 'bg-gray-700',
+          badgeColor: pkg.isNewUser ? 'bg-yellow-500 text-black' : 'bg-orange-500 text-white'
         }))
         setCoinPackages(formattedPackages)
       } else {

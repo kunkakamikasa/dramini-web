@@ -2,7 +2,7 @@
   "app/drama/[slug]/page.tsx -> @/lib/pay": {
     "id": 6841,
     "files": [
-      "static/chunks/841.2c94630bdc1e828f.js"
+      "static/chunks/841.4e1561de4107b638.js"
     ]
   },
   "app/drama/[slug]/page.tsx -> hls.js": {
