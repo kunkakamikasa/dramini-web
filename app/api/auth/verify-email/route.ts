@@ -9,6 +9,9 @@ const verificationCodes = new Map<string, { code: string; expiresAt: number }>()
 // 创建邮件传输器 - 支持多种邮箱服务商
 const createTransporter = () => {
   const email = process.env.EMAIL_USER
+  console.log('EMAIL_USER:', email ? 'configured' : 'not configured')
+  console.log('EMAIL_APP_PASSWORD:', process.env.EMAIL_APP_PASSWORD ? 'configured' : 'not configured')
+  
   if (!email) {
     throw new Error('EMAIL_USER not configured')
   }
