@@ -90,10 +90,8 @@ export async function startStripeCheckout(payload: { plan: string; priceCents: n
     
     // 检查是否有 checkout URL
     if (data.checkoutUrl) {
+      // 重定向到 Stripe Checkout 页面
       window.location.href = data.checkoutUrl;
-    } else if (data.success) {
-      // 如果没有 checkout URL 但请求成功，显示成功消息
-      alert(`✅ ${data.message || 'Payment initiated successfully!'}\nOrder ID: ${data.orderId || 'N/A'}`);
     } else {
       throw new Error('No checkout URL received from server');
     }
@@ -101,6 +99,7 @@ export async function startStripeCheckout(payload: { plan: string; priceCents: n
   } catch (error) {
     console.error('Stripe checkout error:', error);
     analytics.error('stripe_checkout_failed', error instanceof Error ? error.message : 'Payment failed');
+    throw error;
   }
 }
 
@@ -125,10 +124,8 @@ export async function startPayPalCheckout(payload: { plan: string; priceCents: n
     
     // 检查是否有 checkout URL
     if (data.checkoutUrl) {
+      // 重定向到 PayPal 支付页面
       window.location.href = data.checkoutUrl;
-    } else if (data.success) {
-      // 如果没有 checkout URL 但请求成功，显示成功消息
-      alert(`✅ ${data.message || 'Payment initiated successfully!'}\nOrder ID: ${data.orderId || 'N/A'}`);
     } else {
       throw new Error('No checkout URL received from server');
     }
@@ -136,6 +133,7 @@ export async function startPayPalCheckout(payload: { plan: string; priceCents: n
   } catch (error) {
     console.error('PayPal payment error:', error);
     analytics.error('paypal_checkout_failed', error instanceof Error ? error.message : 'Payment failed');
+    throw error;
   }
 }
 
@@ -153,27 +151,74 @@ export function getPlanById(planId: string): PaymentPlan | undefined {
   return paymentPlans.find(p => p.id === planId);
 }
 
-// Payment success handler
-export async function handlePaymentSuccess(sessionId: string, provider: 'stripe' | 'paypal'): Promise<boolean> {
+// Payment verification functions
+export async function verifyStripePayment(sessionId: string) {
   try {
-    const response = await fetch(`${API_BASE}/user/purchase/verify`, {
+    const response = await fetch(`${API_BASE}/payment/verify/stripe`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ sessionId, provider }),
+      body: JSON.stringify({ sessionId }),
     });
 
     if (!response.ok) {
-      throw new Error(`Payment verification failed: ${response.status} ${response.statusText}`);
+      throw new Error(`Stripe payment verification failed: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
     
     // Track success event
-    analytics.checkoutSuccess('unknown', 0, sessionId);
+    if (data.success) {
+      analytics.checkoutSuccess('stripe', 0, sessionId);
+    }
     
-    return data.success || false;
+    return data;
+  } catch (error) {
+    console.error('Stripe payment verification error:', error);
+    throw error;
+  }
+}
+
+export async function verifyPayPalPayment(orderId: string) {
+  try {
+    const response = await fetch(`${API_BASE}/payment/verify/paypal`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ orderId }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`PayPal payment verification failed: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    // Track success event
+    if (data.success) {
+      analytics.checkoutSuccess('paypal', 0, orderId);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('PayPal payment verification error:', error);
+    throw error;
+  }
+}
+
+// Payment success handler (legacy)
+export async function handlePaymentSuccess(sessionId: string, provider: 'stripe' | 'paypal'): Promise<boolean> {
+  try {
+    if (provider === 'stripe') {
+      const data = await verifyStripePayment(sessionId);
+      return data.success || false;
+    } else if (provider === 'paypal') {
+      const data = await verifyPayPalPayment(sessionId);
+      return data.success || false;
+    }
+    return false;
   } catch (error) {
     console.error('Payment verification error:', error);
     return false;
