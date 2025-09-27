@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{}"
+self.__REACT_LOADABLE_MANIFEST='{"app/drama/[slug]/page.tsx -> @/lib/pay":{"id":6841,"files":["static/chunks/841.4e1561de4107b638.js"]},"app/drama/[slug]/page.tsx -> hls.js":{"id":303,"files":["static/chunks/a4634e51.ee705188ecdc8c54.js"]}}';
