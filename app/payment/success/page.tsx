@@ -21,7 +21,14 @@ function PaymentSuccessContent() {
     } else if (orderId) {
       verifyPayPalPayment(orderId)
     } else {
-      setError('No payment session found')
+      // PayPal 支付成功但没有 order_id，显示通用成功信息
+      setPaymentInfo({
+        success: true,
+        metadata: {
+          coins: 0,
+          plan: 'PayPal Payment'
+        }
+      })
       setVerifying(false)
     }
   }, [sessionId, orderId])
@@ -109,24 +116,29 @@ function PaymentSuccessContent() {
           <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-white mb-2">支付成功！</h1>
           
-          {paymentInfo?.success && (
-            <div className="space-y-3 mb-6">
-              <div className="flex items-center justify-center gap-2 text-yellow-400">
-                <Coins className="w-5 h-5" />
-                <span className="text-xl font-bold">
-                  +{paymentInfo.metadata?.coins || 0} 金币
-                </span>
-              </div>
-              {paymentInfo.metadata?.bonus && paymentInfo.metadata.bonus > 0 && (
-                <div className="text-sm text-yellow-300">
-                  +{paymentInfo.metadata.bonus} 奖励金币
-                </div>
-              )}
-              <p className="text-gray-300">
-                套餐: {paymentInfo.metadata?.plan || 'Unknown'}
-              </p>
-            </div>
-          )}
+                 {paymentInfo?.success && (
+                   <div className="space-y-3 mb-6">
+                     <div className="flex items-center justify-center gap-2 text-yellow-400">
+                       <Coins className="w-5 h-5" />
+                       <span className="text-xl font-bold">
+                         +{paymentInfo.metadata?.coins || 0} 金币
+                       </span>
+                     </div>
+                     {paymentInfo.metadata?.bonus && paymentInfo.metadata.bonus > 0 && (
+                       <div className="text-sm text-yellow-300">
+                         +{paymentInfo.metadata.bonus} 奖励金币
+                       </div>
+                     )}
+                     <p className="text-gray-300">
+                       套餐: {paymentInfo.metadata?.plan || 'Unknown'}
+                     </p>
+                     {!sessionId && !orderId && (
+                       <div className="text-sm text-blue-300">
+                         PayPal 支付成功！金币将通过 webhook 自动添加。
+                       </div>
+                     )}
+                   </div>
+                 )}
           
           <div className="space-y-3">
             <Link href="/coins">
