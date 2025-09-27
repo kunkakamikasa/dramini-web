@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { users } from '@/lib/auth-storage'
 
 export const dynamic = 'force-dynamic'
-
-// 简单的内存存储（生产环境应该使用数据库）
-const users = new Map<string, { id: string; email: string; password: string; name: string; coins: number }>()
 
 // 登录
 export async function POST(request: NextRequest) {

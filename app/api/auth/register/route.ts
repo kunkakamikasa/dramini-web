@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { users, verificationCodes } from '@/lib/auth-storage'
 
 export const dynamic = 'force-dynamic'
-
-// 简单的内存存储（生产环境应该使用数据库）
-const users = new Map<string, { id: string; email: string; password: string; name: string; coins: number }>()
 
 // 注册
 export async function POST(request: NextRequest) {
@@ -21,18 +19,23 @@ export async function POST(request: NextRequest) {
     }
 
     // 验证验证码
-    const verifyResponse = await fetch(`${process.env.NEXT_PUBLIC_WEB_BASE_URL || 'http://localhost:3000'}/api/auth/verify-email`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, code: verificationCode }),
-    })
-
-    if (!verifyResponse.ok) {
-      const errorData = await verifyResponse.json()
-      return NextResponse.json({ error: errorData.error || 'Invalid verification code' }, { status: 400 })
+    const storedData = verificationCodes.get(email)
+    
+    if (!storedData) {
+      return NextResponse.json({ error: 'Verification code not found' }, { status: 400 })
     }
+
+    if (Date.now() > storedData.expiresAt) {
+      verificationCodes.delete(email)
+      return NextResponse.json({ error: 'Verification code expired' }, { status: 400 })
+    }
+
+    if (storedData.code !== verificationCode) {
+      return NextResponse.json({ error: 'Invalid verification code' }, { status: 400 })
+    }
+
+    // 验证成功，删除验证码
+    verificationCodes.delete(email)
     
     // 检查用户是否已存在
     if (users.has(email)) {

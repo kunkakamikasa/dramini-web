@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
+import { verificationCodes } from '@/lib/auth-storage'
 
 export const dynamic = 'force-dynamic'
-
-// 存储验证码（生产环境应该使用 Redis）
-const verificationCodes = new Map<string, { code: string; expiresAt: number }>()
 
 // 创建邮件传输器 - 支持多种邮箱服务商
 const createTransporter = () => {
