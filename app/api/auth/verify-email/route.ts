@@ -103,6 +103,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid email format' }, { status: 400 })
     }
 
+    // 检查环境变量
+    console.log('Environment check:')
+    console.log('EMAIL_USER:', process.env.EMAIL_USER ? 'configured' : 'NOT CONFIGURED')
+    console.log('EMAIL_APP_PASSWORD:', process.env.EMAIL_APP_PASSWORD ? 'configured' : 'NOT CONFIGURED')
+    
+    if (!process.env.EMAIL_USER) {
+      console.error('EMAIL_USER environment variable is missing')
+      return NextResponse.json({ error: 'Email service not configured' }, { status: 500 })
+    }
+    
+    if (!process.env.EMAIL_APP_PASSWORD) {
+      console.error('EMAIL_APP_PASSWORD environment variable is missing')
+      return NextResponse.json({ error: 'Email service not configured' }, { status: 500 })
+    }
+
     // 生成验证码
     const code = generateVerificationCode()
     const expiresAt = Date.now() + 5 * 60 * 1000 // 5分钟后过期
@@ -111,6 +126,7 @@ export async function POST(request: NextRequest) {
     verificationCodes.set(email, { code, expiresAt })
 
     // 发送邮件
+    console.log('Creating transporter...')
     const transporter = createTransporter()
     
     const mailOptions = {
@@ -153,7 +169,9 @@ export async function POST(request: NextRequest) {
       `,
     }
 
+    console.log('Sending email to:', email)
     await transporter.sendMail(mailOptions)
+    console.log('Email sent successfully')
 
     return NextResponse.json({ 
       success: true, 
@@ -161,8 +179,14 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Send verification code error:', error)
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    })
     return NextResponse.json({ 
-      error: 'Failed to send verification code' 
+      error: 'Failed to send verification code',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     }, { status: 500 })
   }
 }
