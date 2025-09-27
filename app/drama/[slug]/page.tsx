@@ -112,18 +112,28 @@ export default function DramaPage() {
       }
       
       // 直接使用title数据，不需要额外的详情API
+      const processedEpisodes = (title.episodes || []).map((episode: any) => ({
+        id: episode.id,
+        episodeNum: episode.episodeNum || episode.epNumber || 1,
+        name: episode.name || `Episode ${episode.episodeNum || episode.epNumber || 1}`,
+        videoUrl: episode.videoUrl || episode.videoId || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', // 临时测试视频
+        isFree: episode.isFree || false,
+        priceCoins: episode.priceCoins || 100
+      }))
+      
       setTitleData({
         id: title.id,
         slug: title.slug,
         name: title.name,
         synopsis: title.synopsis,
         coverUrl: title.coverUrl,
-        episodes: title.episodes || [],
-        totalEpisodes: title.episodes?.length || 0,
+        episodes: processedEpisodes,
+        totalEpisodes: processedEpisodes.length,
         seriesPriceCoins: 0
       })
-      if (title.episodes && title.episodes.length > 0) {
-        setCurrentEpisode(title.episodes[0])
+      
+      if (processedEpisodes.length > 0) {
+        setCurrentEpisode(processedEpisodes[0])
         setDebugInfo('Ready!')
       }
     } catch (error: any) {
@@ -134,9 +144,14 @@ export default function DramaPage() {
   }
 
   const loadVideo = async (videoUrl: string) => {
-    if (!videoRef.current || !videoUrl) return
+    if (!videoRef.current || !videoUrl) {
+      setDebugInfo('No video element or URL')
+      return
+    }
 
     try {
+      setDebugInfo('Loading video: ' + videoUrl)
+      
       if (videoUrl.includes('.m3u8')) {
         const Hls = (await import('hls.js')).default
         
@@ -155,7 +170,18 @@ export default function DramaPage() {
           hls.on(Hls.Events.MANIFEST_PARSED, () => {
             setDebugInfo('HLS ready!')
           })
+          
+          hls.on(Hls.Events.ERROR, (event, data) => {
+            console.error('HLS Error:', data)
+            setDebugInfo('HLS Error: ' + data.details)
+          })
+        } else {
+          setDebugInfo('HLS not supported')
         }
+      } else {
+        // 普通视频文件
+        videoRef.current.src = videoUrl
+        setDebugInfo('Video source set')
       }
       
       if (videoRef.current) {
@@ -163,18 +189,30 @@ export default function DramaPage() {
         videoRef.current.muted = isMuted
       }
     } catch (error) {
-      setDebugInfo('Video load error')
+      console.error('Video load error:', error)
+      setDebugInfo('Video load error: ' + (error as Error).message)
     }
   }
 
-  const togglePlay = () => {
-    if (!videoRef.current) return
-    if (isPlaying) {
-      videoRef.current.pause()
-      setIsPlaying(false)
-    } else {
-      videoRef.current.play()
-      setIsPlaying(true)
+  const togglePlay = async () => {
+    if (!videoRef.current) {
+      setDebugInfo('No video element')
+      return
+    }
+    
+    try {
+      if (isPlaying) {
+        videoRef.current.pause()
+        setIsPlaying(false)
+        setDebugInfo('Video paused')
+      } else {
+        await videoRef.current.play()
+        setIsPlaying(true)
+        setDebugInfo('Video playing')
+      }
+    } catch (error) {
+      console.error('Play error:', error)
+      setDebugInfo('Play error: ' + (error as Error).message)
     }
   }
 
@@ -343,7 +381,7 @@ export default function DramaPage() {
                         setDuration(videoRef.current.duration)
                       }
                     }}
-                    poster={titleData.coverUrl?.startsWith('http') ? titleData.coverUrl : `http://localhost:3001${titleData.coverUrl}`}
+                    poster={titleData.coverUrl?.startsWith('http') ? titleData.coverUrl : `${process.env.NEXT_PUBLIC_CMS_BASE || 'https://cms.shortdramini.com'}${titleData.coverUrl}`}
                   />
                   
                   {currentEpisode && !currentEpisode.isFree && (
@@ -378,7 +416,7 @@ export default function DramaPage() {
                     </div>
                   )}
                   
-                  {!isPlaying && currentEpisode?.isFree && (
+                  {!isPlaying && (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                       <Button 
                         className="w-16 h-16 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm"
@@ -389,7 +427,7 @@ export default function DramaPage() {
                     </div>
                   )}
                   
-                  {currentEpisode?.isFree && (
+                  {currentEpisode && (
                     <div 
                       className={`absolute bottom-4 left-4 right-4 transition-opacity ${showControls ? 'opacity-100' : 'opacity-0'}`}
                       onMouseEnter={() => setShowControls(true)}
@@ -777,3 +815,4 @@ function PaymentModal({ episode, title, onClose }: {
     </div>
   )
 }
+
