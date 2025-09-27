@@ -111,21 +111,21 @@ export async function POST(request: NextRequest) {
     const transporter = createTransporter()
     
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"ShortDramini" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: 'Dramini Registration Verification Code',
+      subject: 'ShortDramini Registration Verification Code',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8f9fa; padding: 20px;">
           <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #E50914; margin: 0; font-size: 28px;">Dramini</h1>
+              <h1 style="color: #E50914; margin: 0; font-size: 28px;">ShortDramini</h1>
               <p style="color: #666; margin: 10px 0 0 0;">Your Premium Drama Platform</p>
             </div>
             
             <h2 style="color: #333; margin-bottom: 20px;">Registration Verification Code</h2>
             
             <p style="color: #555; line-height: 1.6;">Hello!</p>
-            <p style="color: #555; line-height: 1.6;">Thank you for registering with Dramini. To complete your registration, please use the verification code below:</p>
+            <p style="color: #555; line-height: 1.6;">Thank you for registering with ShortDramini. To complete your registration, please use the verification code below:</p>
             
             <div style="background: linear-gradient(135deg, #E50914, #ff6b6b); padding: 25px; text-align: center; margin: 25px 0; border-radius: 8px;">
               <span style="font-size: 36px; font-weight: bold; color: white; letter-spacing: 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${code}</span>
@@ -137,12 +137,12 @@ export async function POST(request: NextRequest) {
               </p>
             </div>
             
-            <p style="color: #555; line-height: 1.6;">If you did not register for a Dramini account, please ignore this email.</p>
+            <p style="color: #555; line-height: 1.6;">If you did not register for a ShortDramini account, please ignore this email.</p>
             
             <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
             
             <div style="text-align: center; color: #999; font-size: 12px;">
-              <p style="margin: 0;">This email was sent automatically by Dramini system.</p>
+              <p style="margin: 0;">This email was sent automatically by ShortDramini system.</p>
               <p style="margin: 5px 0 0 0;">Please do not reply to this email.</p>
             </div>
           </div>
