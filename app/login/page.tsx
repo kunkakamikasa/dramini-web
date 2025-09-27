@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, User, RefreshCw } from 'lucide-react'
 
 function LoginContent() {
   const router = useRouter()
@@ -26,6 +26,21 @@ function LoginContent() {
   })
   const [verificationSent, setVerificationSent] = useState(false)
   const [sendingCode, setSendingCode] = useState(false)
+  const [countdown, setCountdown] = useState(0)
+  const [canResend, setCanResend] = useState(true)
+
+  // 倒计时效果
+  useEffect(() => {
+    let timer: NodeJS.Timeout
+    if (countdown > 0) {
+      timer = setTimeout(() => {
+        setCountdown(countdown - 1)
+      }, 1000)
+    } else if (countdown === 0 && verificationSent) {
+      setCanResend(true)
+    }
+    return () => clearTimeout(timer)
+  }, [countdown, verificationSent])
 
   const sendVerificationCode = async () => {
     if (!formData.email) {
@@ -45,6 +60,8 @@ function LoginContent() {
 
       if (response.ok) {
         setVerificationSent(true)
+        setCountdown(60) // 开始60秒倒计时
+        setCanResend(false) // 禁用重新发送按钮
         alert('Verification code sent to your email')
       } else {
         const errorData = await response.json()
@@ -126,6 +143,19 @@ function LoginContent() {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
+    })
+  }
+
+  const toggleAuthMode = () => {
+    setIsLogin(!isLogin)
+    // 重置验证码相关状态
+    setVerificationSent(false)
+    setCountdown(0)
+    setCanResend(true)
+    setSendingCode(false)
+    setFormData({
+      ...formData,
+      verificationCode: ''
     })
   }
 
@@ -227,14 +257,30 @@ function LoginContent() {
                     type="button"
                     variant="outline"
                     onClick={sendVerificationCode}
-                    disabled={sendingCode || verificationSent}
-                    className="px-4 bg-gray-800 border-gray-600 text-white hover:bg-gray-700"
+                    disabled={sendingCode || !canResend}
+                    className="px-4 bg-gray-800 border-gray-600 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {sendingCode ? 'Sending...' : verificationSent ? 'Sent' : 'Send Code'}
+                    {sendingCode ? (
+                      <div className="flex items-center gap-1">
+                        <RefreshCw className="w-3 h-3 animate-spin" />
+                        <span>Sending...</span>
+                      </div>
+                    ) : countdown > 0 ? (
+                      <span>Resend ({countdown}s)</span>
+                    ) : (
+                      <span>Send Code</span>
+                    )}
                   </Button>
                 </div>
                 {verificationSent && (
-                  <p className="text-sm text-green-400">Verification code sent! Check your email.</p>
+                  <div className="space-y-1">
+                    <p className="text-sm text-green-400">✓ Verification code sent! Check your email.</p>
+                    {countdown > 0 && (
+                      <p className="text-xs text-gray-400">
+                        You can resend the code in {countdown} seconds
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             )}
@@ -257,7 +303,7 @@ function LoginContent() {
             <Button
               variant="link"
               className="text-red-500 hover:text-red-400 p-0 h-auto"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={toggleAuthMode}
             >
               {isLogin ? 'Sign up' : 'Sign in'}
             </Button>
