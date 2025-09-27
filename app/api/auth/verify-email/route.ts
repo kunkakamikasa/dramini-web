@@ -8,7 +8,7 @@ const verificationCodes = new Map<string, { code: string; expiresAt: number }>()
 
 // 创建邮件传输器
 const createTransporter = () => {
-  return nodemailer.createTransporter({
+  return nodemailer.createTransport({
     service: 'gmail', // 使用 Gmail 服务
     auth: {
       user: process.env.EMAIL_USER, // Gmail 邮箱
