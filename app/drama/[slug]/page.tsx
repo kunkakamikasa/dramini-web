@@ -680,10 +680,7 @@ function PaymentModal({ episode, title, onClose }: {
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Top Up</h3>
-              <Button variant="ghost" size="sm" className="text-red-500">›</Button>
-            </div>
+            <h3 className="text-lg font-semibold">Top Up</h3>
 
             {loadingPackages ? (
               <div className="text-center py-8">
@@ -691,60 +688,65 @@ function PaymentModal({ episode, title, onClose }: {
               </div>
             ) : (
               <div className="space-y-3">
+                {/* 首充套餐 - 突出显示 */}
                 {coinPackages.filter(pkg => pkg.isNewUser).map((pkg) => (
                   <div
                     key={pkg.id}
-                    className={`${pkg.bgColor} rounded-lg p-4 relative overflow-hidden cursor-pointer border-2 ${
-                      selectedPackage?.id === pkg.id ? 'border-yellow-400 ring-2 ring-yellow-400/50' : 'border-transparent'
-                    } transition-all hover:scale-[1.02]`}
+                    className="bg-gray-800 rounded-lg p-4 relative cursor-pointer border-2 border-yellow-400 transition-all hover:scale-[1.02]"
                     onClick={() => setSelectedPackage(pkg)}
                   >
-                    <div className="absolute top-2 right-2">
-                      <Badge className={pkg.badgeColor + ' font-bold'}>
-                        <Zap className="w-3 h-3 mr-1" />
-                        {pkg.discount}
-                      </Badge>
+                    {/* 火焰形状的+100%徽章 */}
+                    <div className="absolute -top-2 -right-2">
+                      <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full border-2 border-white">
+                        +{Math.round((pkg.bonus / pkg.coins) * 100)}%
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    
+                    <div className="flex items-center gap-4">
+                      {/* 金币图标 */}
                       <div className="flex items-center gap-2">
-                        <Coins className="w-8 h-8 text-yellow-400" />
+                        <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center">
+                          <span className="text-yellow-800 font-bold text-lg">R</span>
+                        </div>
                         <div>
-                          <div className="text-sm opacity-90">NEW USER ONLY</div>
-                          <div className="text-2xl font-bold">{pkg.coins}<span className="text-lg">Coins</span></div>
-                          <div className="text-sm">+{pkg.bonus} Bonus</div>
+                          <div className="text-gray-300 text-sm">NEW USER ONLY</div>
+                          <div className="text-white text-2xl font-bold">
+                            {pkg.coins} Coins + {pkg.bonus} Bonus
+                          </div>
                         </div>
                       </div>
+                      
+                      {/* 价格 */}
                       <div className="ml-auto text-right">
-                        <div className="text-2xl font-bold">${pkg.price}</div>
-                        <div className="text-sm opacity-75">{pkg.description}</div>
+                        <div className="text-white text-2xl font-bold">${pkg.price}</div>
                       </div>
                     </div>
                   </div>
                 ))}
 
+                {/* 普通套餐网格 */}
                 <div className="grid grid-cols-3 gap-3">
                   {coinPackages.filter(pkg => !pkg.isNewUser).map((pkg) => (
                     <div
                       key={pkg.id}
-                      className={`${pkg.bgColor} rounded-lg p-3 text-center relative cursor-pointer border-2 ${
-                        selectedPackage?.id === pkg.id ? 'border-yellow-400 ring-2 ring-yellow-400/50' : 'border-transparent'
-                      } transition-all hover:scale-105`}
+                      className="bg-gray-700 rounded-lg p-3 text-center relative cursor-pointer border-2 border-transparent hover:border-gray-500 transition-all hover:scale-105"
                       onClick={() => setSelectedPackage(pkg)}
                     >
                       {pkg.discount && (
-                        <Badge className={`absolute -top-2 left-1/2 transform -translate-x-1/2 ${pkg.badgeColor} text-xs`}>
-                          {pkg.discount}
-                        </Badge>
+                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+                          <div className="bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                            {pkg.discount}
+                          </div>
+                        </div>
                       )}
                       <div className={pkg.discount ? 'mt-2' : ''}>
-                        <div className="text-lg font-bold">{pkg.coins}</div>
+                        <div className="text-white text-lg font-bold">{pkg.coins}</div>
                         {pkg.bonus > 0 ? (
-                          <div className="text-xs">+{pkg.bonus} Bonus</div>
+                          <div className="text-gray-300 text-xs">+{pkg.bonus} Bonus</div>
                         ) : (
-                          <div className="text-xs text-gray-400">Coins</div>
+                          <div className="text-gray-400 text-xs">Coins</div>
                         )}
-                        <div className="text-sm font-semibold mt-2">${pkg.price}</div>
-                        <div className="text-xs text-gray-400 mt-1">{pkg.description}</div>
+                        <div className="text-white text-sm font-semibold mt-2">${pkg.price}</div>
                       </div>
                     </div>
                   ))}
@@ -758,46 +760,28 @@ function PaymentModal({ episode, title, onClose }: {
             <div className="flex gap-3">
               <div 
                 className={`flex-1 border-2 rounded-lg p-3 cursor-pointer transition-all ${
-                  paymentMethod === 'paypal' ? 'border-red-500 bg-red-500/10' : 'border-gray-600 bg-gray-800'
+                  paymentMethod === 'paypal' ? 'border-red-500 bg-blue-900' : 'border-gray-600 bg-gray-800'
                 }`}
                 onClick={() => setPaymentMethod('paypal')}
               >
-                <div className="flex items-center justify-center">
-                  <div className="bg-blue-600 rounded px-3 py-2 text-white text-sm font-bold">
-                    PayPal
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">P</span>
                   </div>
+                  <span className="text-white text-sm font-medium">PayPal</span>
                 </div>
               </div>
               <div 
                 className={`flex-1 border-2 rounded-lg p-3 cursor-pointer transition-all ${
-                  paymentMethod === 'card' ? 'border-red-500 bg-red-500/10' : 'border-gray-600 bg-gray-800'
+                  paymentMethod === 'card' ? 'border-red-500 bg-blue-900' : 'border-gray-600 bg-gray-800'
                 }`}
                 onClick={() => setPaymentMethod('card')}
               >
-                <div className="flex items-center justify-center">
-                  <CreditCard className="w-6 h-6 text-gray-400 mr-2" />
-                  <span className="text-gray-400 text-sm">Credit Card</span>
+                <div className="flex items-center justify-center gap-2">
+                  <CreditCard className="w-6 h-6 text-white" />
+                  <span className="text-white text-sm font-medium">Credit Card</span>
                 </div>
               </div>
-            </div>
-          </div>
-
-          {selectedPackage && (
-            <div className="bg-blue-900/30 border border-blue-500 rounded-lg p-3">
-              <div className="text-center">
-                <div className="text-blue-300 text-sm">Selected Package:</div>
-                <div className="text-white font-bold">
-                  {selectedPackage.coins} Coins 
-                  {selectedPackage.bonus > 0 && ` + ${selectedPackage.bonus} Bonus`} 
-                  - ${selectedPackage.price}
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="bg-red-900/30 border border-red-500 rounded-lg p-3 text-center">
-            <div className="text-red-400 text-sm font-medium">
-              Insufficient coins. Need {episode.priceCoins} more coins
             </div>
           </div>
         </CardContent>
