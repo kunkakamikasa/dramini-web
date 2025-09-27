@@ -270,6 +270,15 @@ export default function DramaPage() {
   }
 
   const handleEpisodeClick = (episode: Episode) => {
+    // 检查用户是否已登录
+    const userId = localStorage.getItem('userId')
+    if (!userId) {
+      alert('Please login first to watch episodes')
+      // 跳转到登录页面
+      window.location.href = '/login'
+      return
+    }
+
     if (episode.isFree) {
       setCurrentEpisode(episode)
       setIsPlaying(false)
@@ -646,12 +655,21 @@ function PaymentModal({ episode, title, onClose }: {
       return
     }
 
+    // 检查用户是否已登录
+    const userId = localStorage.getItem('userId')
+    if (!userId) {
+      alert('Please login first to make a payment')
+      // 跳转到登录页面
+      window.location.href = '/login'
+      return
+    }
+
     setLoading(true)
     try {
       // 使用新的 tier_key 和 userId 格式
       const payload = {
         tierKey: selectedPackage.id,
-        userId: 'anonymous' // TODO: 从用户认证系统获取真实用户ID
+        userId: userId
       }
 
       if (paymentMethod === 'paypal') {

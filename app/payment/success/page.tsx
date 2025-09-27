@@ -144,20 +144,20 @@ function PaymentSuccessContent() {
                    </div>
                  )}
           
-          <div className="space-y-3">
-            <Link href="/coins">
-              <Button className="w-full bg-yellow-600 hover:bg-yellow-700 text-black">
-                <Coins className="w-4 h-4 mr-2" />
-                查看金币余额
-              </Button>
-            </Link>
-            <Link href="/">
-              <Button variant="outline" className="w-full">
-                <Home className="w-4 h-4 mr-2" />
-                返回首页
-              </Button>
-            </Link>
-          </div>
+                 <div className="space-y-3">
+                   <Link href="/profile">
+                     <Button className="w-full bg-yellow-600 hover:bg-yellow-700 text-black">
+                       <Coins className="w-4 h-4 mr-2" />
+                       查看我的金币
+                     </Button>
+                   </Link>
+                   <Link href="/">
+                     <Button variant="outline" className="w-full">
+                       <Home className="w-4 h-4 mr-2" />
+                       返回首页
+                     </Button>
+                   </Link>
+                 </div>
         </CardContent>
       </Card>
     </div>
