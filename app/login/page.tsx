@@ -21,8 +21,42 @@ function LoginContent() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    name: ''
+    name: '',
+    verificationCode: ''
   })
+  const [verificationSent, setVerificationSent] = useState(false)
+  const [sendingCode, setSendingCode] = useState(false)
+
+  const sendVerificationCode = async () => {
+    if (!formData.email) {
+      alert('Please enter your email first')
+      return
+    }
+
+    setSendingCode(true)
+    try {
+      const response = await fetch('/api/auth/verify-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: formData.email }),
+      })
+
+      if (response.ok) {
+        setVerificationSent(true)
+        alert('Verification code sent to your email')
+      } else {
+        const errorData = await response.json()
+        alert(errorData.error || 'Failed to send verification code')
+      }
+    } catch (error) {
+      console.error('Send verification code error:', error)
+      alert('Failed to send verification code')
+    } finally {
+      setSendingCode(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,7 +97,8 @@ function LoginContent() {
           body: JSON.stringify({
             email: formData.email,
             password: formData.password,
-            name: formData.name
+            name: formData.name,
+            verificationCode: formData.verificationCode
           })
         })
 
@@ -173,6 +208,36 @@ function LoginContent() {
                 </Button>
               </div>
             </div>
+            
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="verificationCode" className="text-gray-300">Verification Code</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="verificationCode"
+                    name="verificationCode"
+                    type="text"
+                    placeholder="Enter verification code"
+                    value={formData.verificationCode}
+                    onChange={handleInputChange}
+                    required={!isLogin}
+                    className="flex-1 bg-gray-800 border-gray-600 text-white placeholder-gray-400"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={sendVerificationCode}
+                    disabled={sendingCode || verificationSent}
+                    className="px-4 bg-gray-800 border-gray-600 text-white hover:bg-gray-700"
+                  >
+                    {sendingCode ? 'Sending...' : verificationSent ? 'Sent' : 'Send Code'}
+                  </Button>
+                </div>
+                {verificationSent && (
+                  <p className="text-sm text-green-400">Verification code sent! Check your email.</p>
+                )}
+              </div>
+            )}
             
             <Button
               type="submit"

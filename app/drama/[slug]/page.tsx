@@ -70,6 +70,14 @@ export default function DramaPage() {
   const [isDragging, setIsDragging] = useState(false)
 
   useEffect(() => {
+    // 检查用户是否已登录
+    const userId = localStorage.getItem('userId')
+    if (!userId) {
+      // 未登录，直接跳转到登录页面
+      window.location.href = `/login?redirect=/drama/${slug}`
+      return
+    }
+
     if (slug) {
       fetchTitleData()
     }
@@ -270,15 +278,6 @@ export default function DramaPage() {
   }
 
   const handleEpisodeClick = (episode: Episode) => {
-    // 检查用户是否已登录
-    const userId = localStorage.getItem('userId')
-    if (!userId) {
-      alert('Please login first to watch episodes')
-      // 跳转到登录页面
-      window.location.href = '/login'
-      return
-    }
-
     if (episode.isFree) {
       setCurrentEpisode(episode)
       setIsPlaying(false)

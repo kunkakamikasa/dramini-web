@@ -8,10 +8,30 @@ const users = new Map<string, { id: string; email: string; password: string; nam
 // 注册
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, name } = await request.json()
+    const { email, password, name, verificationCode } = await request.json()
     
-    if (!email || !password || !name) {
+    if (!email || !password || !name || !verificationCode) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+    
+    // 验证邮箱格式
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 })
+    }
+
+    // 验证验证码
+    const verifyResponse = await fetch(`${process.env.NEXT_PUBLIC_WEB_BASE_URL || 'http://localhost:3000'}/api/auth/verify-email`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, code: verificationCode }),
+    })
+
+    if (!verifyResponse.ok) {
+      const errorData = await verifyResponse.json()
+      return NextResponse.json({ error: errorData.error || 'Invalid verification code' }, { status: 400 })
     }
     
     // 检查用户是否已存在
