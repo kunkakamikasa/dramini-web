@@ -70,9 +70,9 @@ export const paymentPlans: PaymentPlan[] = [
 ];
 
 // Stripe integration
-export async function startStripeCheckout(payload: { plan: string; priceCents: number; meta?: any }) {
+export async function startStripeCheckout(payload: { tierKey: string; userId: string }) {
   try {
-    analytics.checkoutStart(payload.plan, payload.priceCents);
+    analytics.checkoutStart(payload.tierKey, 0); // priceCents 现在由服务端决定
     
     const response = await fetch(`${API_BASE}/user/purchase/checkout/stripe`, {
       method: 'POST',
@@ -104,9 +104,9 @@ export async function startStripeCheckout(payload: { plan: string; priceCents: n
 }
 
 // PayPal integration
-export async function startPayPalCheckout(payload: { plan: string; priceCents: number; meta?: any }) {
+export async function startPayPalCheckout(payload: { tierKey: string; userId: string }) {
   try {
-    analytics.checkoutStart(payload.plan, payload.priceCents);
+    analytics.checkoutStart(payload.tierKey, 0); // priceCents 现在由服务端决定
     
     const response = await fetch(`${API_BASE}/user/purchase/checkout/paypal`, {
       method: 'POST',
@@ -133,6 +133,23 @@ export async function startPayPalCheckout(payload: { plan: string; priceCents: n
   } catch (error) {
     console.error('PayPal payment error:', error);
     analytics.error('paypal_checkout_failed', error instanceof Error ? error.message : 'Payment failed');
+    throw error;
+  }
+}
+
+// 获取金币套餐列表
+export async function getPaymentTiers() {
+  try {
+    const response = await fetch(`${API_BASE}/payment/tiers`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch payment tiers: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.tiers;
+  } catch (error) {
+    console.error('Get payment tiers error:', error);
     throw error;
   }
 }

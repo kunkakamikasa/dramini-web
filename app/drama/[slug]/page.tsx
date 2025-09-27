@@ -600,32 +600,32 @@ function PaymentModal({ episode, title, onClose }: {
 
   const fetchPaymentPackages = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'https://dramini-api.onrender.com/api/v1'}/payment-packages`)
-      const data = await response.json()
+      const { getPaymentTiers } = await import('@/lib/pay')
+      const tiers = await getPaymentTiers()
       
-      if (data.ok && data.packages) {
-        const formattedPackages = data.packages.map((pkg: any) => ({
-          id: pkg.id,
-          coins: pkg.coins,
-          bonus: pkg.bonus,
-          price: pkg.price,
-          discount: pkg.discount,
-          isNewUser: pkg.isNewUser,
-          name: pkg.name,
-          description: pkg.description,
-          bgColor: pkg.isNewUser ? 'bg-gradient-to-r from-red-500 to-pink-500' : 'bg-gray-700',
-          badgeColor: pkg.isNewUser ? 'bg-yellow-500 text-black' : 'bg-orange-500 text-white'
+      if (tiers && tiers.all) {
+        const formattedPackages = tiers.all.map((tier: any) => ({
+          id: tier.key,
+          coins: tier.coins,
+          bonus: tier.bonusCoins,
+          price: tier.priceCents / 100,
+          discount: tier.bonusCoins > 0 ? `+${Math.round((tier.bonusCoins / tier.coins) * 100)}%` : null,
+          isNewUser: tier.isFirstTime,
+          name: tier.name,
+          description: tier.description,
+          bgColor: tier.isFirstTime ? 'bg-gradient-to-r from-red-500 to-pink-500' : 'bg-gray-700',
+          badgeColor: tier.isFirstTime ? 'bg-yellow-500 text-black' : 'bg-orange-500 text-white'
         }))
         setCoinPackages(formattedPackages)
       } else {
         // 使用默认数据
         setCoinPackages([
           {
-            id: 'default',
-            coins: 500,
+            id: 'coins_300',
+            coins: 300,
             bonus: 50,
             price: 4.99,
-            discount: '+10%',
+            discount: '+17%',
             isNewUser: false,
             bgColor: 'bg-gray-700',
             badgeColor: 'bg-orange-500 text-white'
@@ -648,15 +648,10 @@ function PaymentModal({ episode, title, onClose }: {
 
     setLoading(true)
     try {
+      // 使用新的 tier_key 和 userId 格式
       const payload = {
-        plan: selectedPackage.id,
-        priceCents: Math.round(selectedPackage.price * 100),
-        meta: {
-          coins: selectedPackage.coins,
-          bonus: selectedPackage.bonus,
-          episodeId: episode.id,
-          titleId: title.id
-        }
+        tierKey: selectedPackage.id,
+        userId: 'anonymous' // TODO: 从用户认证系统获取真实用户ID
       }
 
       if (paymentMethod === 'paypal') {
