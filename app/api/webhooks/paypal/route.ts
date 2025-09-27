@@ -4,12 +4,15 @@ import crypto from 'crypto'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text()
-    const signature = request.headers.get('paypal-transmission-id')
+    const transmissionId = request.headers.get('paypal-transmission-id')
     const webhookId = request.headers.get('paypal-webhook-id')
-    const timestamp = request.headers.get('paypal-transmission-time')
+    const transmissionTime = request.headers.get('paypal-transmission-time')
+    const transmissionSig = request.headers.get('paypal-transmission-sig')
+    const certUrl = request.headers.get('paypal-cert-url')
+    const authAlgo = request.headers.get('paypal-auth-algo')
     
-    // 验证 Webhook 签名
-    if (!signature || !webhookId || !timestamp) {
+    // 验证必需的 PayPal Webhook 头信息
+    if (!transmissionId || !webhookId || !transmissionTime || !transmissionSig || !certUrl || !authAlgo) {
       console.error('Missing PayPal webhook headers')
       return NextResponse.json({ error: 'Missing headers' }, { status: 400 })
     }
@@ -22,7 +25,15 @@ export async function POST(request: NextRequest) {
     }
 
     // 验证签名
-    const isValid = verifyPayPalWebhook(body, signature, webhookId, timestamp)
+    const isValid = await verifyPayPalWebhook(
+      body,
+      transmissionId,
+      transmissionTime,
+      transmissionSig,
+      certUrl,
+      authAlgo,
+      webhookId
+    )
     if (!isValid) {
       console.error('Invalid PayPal webhook signature')
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
@@ -56,33 +67,77 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function verifyPayPalWebhook(
+async function verifyPayPalWebhook(
   body: string,
-  signature: string,
-  webhookId: string,
-  timestamp: string
-): boolean {
+  transmissionId: string,
+  transmissionTime: string,
+  transmissionSig: string,
+  certUrl: string,
+  authAlgo: string,
+  webhookId: string
+): Promise<boolean> {
   try {
-    const webhookSecret = process.env.PAYPAL_WEBHOOK_SECRET
-    if (!webhookSecret) {
-      console.error('PAYPAL_WEBHOOK_SECRET not configured')
+    // 使用 PayPal 的验证 API 来验证 Webhook 签名
+    const clientId = process.env.PAYPAL_CLIENT_ID
+    const clientSecret = process.env.PAYPAL_CLIENT_SECRET
+    const environment = process.env.PAYPAL_ENVIRONMENT || 'live'
+    
+    if (!clientId || !clientSecret) {
+      console.error('PayPal credentials not configured')
       return false
     }
 
-    // 构建验证字符串
-    const data = `${webhookId}|${timestamp}|${body}`
-    
-    // 计算 HMAC-SHA256
-    const expectedSignature = crypto
-      .createHmac('sha256', webhookSecret)
-      .update(data)
-      .digest('hex')
+    // 构建验证请求
+    const baseUrl = environment === 'live' 
+      ? 'https://api-m.paypal.com' 
+      : 'https://api-m.sandbox.paypal.com'
 
-    // 验证签名
-    return crypto.timingSafeEqual(
-      Buffer.from(signature, 'hex'),
-      Buffer.from(expectedSignature, 'hex')
-    )
+    const verifyPayload = {
+      auth_algo: authAlgo,
+      cert_id: certUrl,
+      transmission_id: transmissionId,
+      transmission_sig: transmissionSig,
+      transmission_time: transmissionTime,
+      webhook_id: webhookId,
+      webhook_event: JSON.parse(body)
+    }
+
+    // 获取访问令牌
+    const tokenResponse = await fetch(`${baseUrl}/v1/oauth2/token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`
+      },
+      body: 'grant_type=client_credentials'
+    })
+
+    if (!tokenResponse.ok) {
+      console.error('Failed to get PayPal access token')
+      return false
+    }
+
+    const tokenData = await tokenResponse.json()
+    const accessToken = tokenData.access_token
+
+    // 验证 Webhook 签名
+    const verifyResponse = await fetch(`${baseUrl}/v1/notifications/verify-webhook-signature`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      },
+      body: JSON.stringify(verifyPayload)
+    })
+
+    if (!verifyResponse.ok) {
+      console.error('PayPal webhook verification failed')
+      return false
+    }
+
+    const verifyResult = await verifyResponse.json()
+    return verifyResult.verification_status === 'SUCCESS'
+
   } catch (error) {
     console.error('PayPal webhook verification error:', error)
     return false
