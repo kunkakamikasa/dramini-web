@@ -648,10 +648,31 @@ function PaymentModal({ episode, title, onClose }: {
 
     setLoading(true)
     try {
-      alert(`🚀 Redirecting to ${paymentMethod} payment...\n💰 Package: ${selectedPackage.coins} Coins + ${selectedPackage.bonus} Bonus\n💵 Price: $${selectedPackage.price}`)
+      const payload = {
+        plan: selectedPackage.id,
+        priceCents: Math.round(selectedPackage.price * 100),
+        meta: {
+          coins: selectedPackage.coins,
+          bonus: selectedPackage.bonus,
+          episodeId: episode.id,
+          titleId: title.id
+        }
+      }
+
+      if (paymentMethod === 'paypal') {
+        // 使用PayPal支付
+        const { startPayPalCheckout } = await import('@/lib/pay')
+        await startPayPalCheckout(payload)
+      } else {
+        // 使用Stripe支付
+        const { startStripeCheckout } = await import('@/lib/pay')
+        await startStripeCheckout(payload)
+      }
+      
       onClose()
     } catch (error) {
-      alert('Payment error occurred')
+      console.error('Payment error:', error)
+      alert('Payment error occurred: ' + (error as Error).message)
     } finally {
       setLoading(false)
     }
@@ -692,7 +713,11 @@ function PaymentModal({ episode, title, onClose }: {
                 {coinPackages.filter(pkg => pkg.isNewUser).map((pkg) => (
                   <div
                     key={pkg.id}
-                    className="bg-gray-800 rounded-lg p-4 relative cursor-pointer border-2 border-yellow-400 transition-all hover:scale-[1.02]"
+                    className={`bg-gray-800 rounded-lg p-4 relative cursor-pointer border-2 transition-all hover:scale-[1.02] ${
+                      selectedPackage?.id === pkg.id 
+                        ? 'border-yellow-400 ring-4 ring-yellow-400/30 bg-yellow-900/20' 
+                        : 'border-yellow-400'
+                    }`}
                     onClick={() => setSelectedPackage(pkg)}
                   >
                     {/* 火焰形状的+100%徽章 */}
@@ -729,7 +754,11 @@ function PaymentModal({ episode, title, onClose }: {
                   {coinPackages.filter(pkg => !pkg.isNewUser).map((pkg) => (
                     <div
                       key={pkg.id}
-                      className="bg-gray-700 rounded-lg p-3 text-center relative cursor-pointer border-2 border-transparent hover:border-gray-500 transition-all hover:scale-105"
+                      className={`bg-gray-700 rounded-lg p-3 text-center relative cursor-pointer border-2 transition-all hover:scale-105 ${
+                        selectedPackage?.id === pkg.id 
+                          ? 'border-yellow-400 ring-4 ring-yellow-400/30 bg-yellow-900/20' 
+                          : 'border-transparent hover:border-gray-500'
+                      }`}
                       onClick={() => setSelectedPackage(pkg)}
                     >
                       {pkg.discount && (
