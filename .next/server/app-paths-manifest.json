@@ -1,1 +1,20 @@
-{}
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/webhooks/stripe/route": "app/api/webhooks/stripe/route.js",
+  "/api-test/page": "app/api-test/page.js",
+  "/api/webhooks/paypal/route": "app/api/webhooks/paypal/route.js",
+  "/account/page": "app/account/page.js",
+  "/auth/signin/page": "app/auth/signin/page.js",
+  "/auth/signup/page": "app/auth/signup/page.js",
+  "/categories/page": "app/categories/page.js",
+  "/browse/page": "app/browse/page.js",
+  "/coins/page": "app/coins/page.js",
+  "/debug/page": "app/debug/page.js",
+  "/page": "app/page.js",
+  "/payment/cancel/page": "app/payment/cancel/page.js",
+  "/pay/page": "app/pay/page.js",
+  "/payment/success/page": "app/payment/success/page.js",
+  "/play/[id]/page": "app/play/[id]/page.js",
+  "/top/page": "app/top/page.js",
+  "/drama/[slug]/page": "app/drama/[slug]/page.js"
+}
