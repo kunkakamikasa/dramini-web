@@ -88,9 +88,12 @@ export async function startStripeCheckout(payload: { plan: string; priceCents: n
 
     const data = await response.json();
     
-    // Redirect to Stripe Checkout
+    // 检查是否有 checkout URL
     if (data.checkoutUrl) {
       window.location.href = data.checkoutUrl;
+    } else if (data.success) {
+      // 如果没有 checkout URL 但请求成功，显示成功消息
+      alert(`✅ ${data.message || 'Payment initiated successfully!'}\nOrder ID: ${data.orderId || 'N/A'}`);
     } else {
       throw new Error('No checkout URL received from server');
     }
@@ -120,9 +123,12 @@ export async function startPayPalCheckout(payload: { plan: string; priceCents: n
 
     const data = await response.json();
     
-    // Redirect to PayPal Checkout
+    // 检查是否有 checkout URL
     if (data.checkoutUrl) {
       window.location.href = data.checkoutUrl;
+    } else if (data.success) {
+      // 如果没有 checkout URL 但请求成功，显示成功消息
+      alert(`✅ ${data.message || 'Payment initiated successfully!'}\nOrder ID: ${data.orderId || 'N/A'}`);
     } else {
       throw new Error('No checkout URL received from server');
     }
