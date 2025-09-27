@@ -6,15 +6,78 @@ export const dynamic = 'force-dynamic'
 // 存储验证码（生产环境应该使用 Redis）
 const verificationCodes = new Map<string, { code: string; expiresAt: number }>()
 
-// 创建邮件传输器
+// 创建邮件传输器 - 支持多种邮箱服务商
 const createTransporter = () => {
-  return nodemailer.createTransport({
-    service: 'gmail', // 使用 Gmail 服务
+  const email = process.env.EMAIL_USER
+  if (!email) {
+    throw new Error('EMAIL_USER not configured')
+  }
+
+  // 根据邮箱域名自动选择SMTP配置
+  const domain = email.split('@')[1].toLowerCase()
+  
+  let smtpConfig: any = {
     auth: {
-      user: process.env.EMAIL_USER, // Gmail 邮箱
-      pass: process.env.EMAIL_APP_PASSWORD, // Gmail 应用密码
+      user: email,
+      pass: process.env.EMAIL_APP_PASSWORD,
     },
-  })
+  }
+
+  switch (domain) {
+    case 'gmail.com':
+      smtpConfig.service = 'gmail'
+      break
+    case 'outlook.com':
+    case 'hotmail.com':
+    case 'live.com':
+      smtpConfig.service = 'hotmail'
+      break
+    case 'yahoo.com':
+    case 'yahoo.co.uk':
+    case 'yahoo.ca':
+      smtpConfig.service = 'yahoo'
+      break
+    case 'icloud.com':
+    case 'me.com':
+    case 'mac.com':
+      smtpConfig.host = 'smtp.mail.me.com'
+      smtpConfig.port = 587
+      smtpConfig.secure = false
+      break
+    case 'protonmail.com':
+      smtpConfig.host = 'smtp.protonmail.com'
+      smtpConfig.port = 587
+      smtpConfig.secure = false
+      break
+    case 'zoho.com':
+      smtpConfig.host = 'smtp.zoho.com'
+      smtpConfig.port = 587
+      smtpConfig.secure = false
+      break
+    case 'aol.com':
+      smtpConfig.host = 'smtp.aol.com'
+      smtpConfig.port = 587
+      smtpConfig.secure = false
+      break
+    case 'yandex.com':
+    case 'yandex.ru':
+      smtpConfig.host = 'smtp.yandex.com'
+      smtpConfig.port = 587
+      smtpConfig.secure = false
+      break
+    case 'mail.ru':
+      smtpConfig.host = 'smtp.mail.ru'
+      smtpConfig.port = 587
+      smtpConfig.secure = false
+      break
+    default:
+      // 对于其他邮箱服务商，使用通用SMTP配置
+      smtpConfig.host = process.env.SMTP_HOST || 'smtp.gmail.com'
+      smtpConfig.port = parseInt(process.env.SMTP_PORT || '587')
+      smtpConfig.secure = process.env.SMTP_SECURE === 'true'
+  }
+
+  return nodemailer.createTransport(smtpConfig)
 }
 
 // 生成6位数字验证码
@@ -50,19 +113,39 @@ export async function POST(request: NextRequest) {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Dramini 注册验证码',
+      subject: 'Dramini Registration Verification Code',
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #E50914;">Dramini 注册验证码</h2>
-          <p>您好！</p>
-          <p>您的注册验证码是：</p>
-          <div style="background-color: #f5f5f5; padding: 20px; text-align: center; margin: 20px 0;">
-            <span style="font-size: 32px; font-weight: bold; color: #E50914; letter-spacing: 5px;">${code}</span>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8f9fa; padding: 20px;">
+          <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #E50914; margin: 0; font-size: 28px;">Dramini</h1>
+              <p style="color: #666; margin: 10px 0 0 0;">Your Premium Drama Platform</p>
+            </div>
+            
+            <h2 style="color: #333; margin-bottom: 20px;">Registration Verification Code</h2>
+            
+            <p style="color: #555; line-height: 1.6;">Hello!</p>
+            <p style="color: #555; line-height: 1.6;">Thank you for registering with Dramini. To complete your registration, please use the verification code below:</p>
+            
+            <div style="background: linear-gradient(135deg, #E50914, #ff6b6b); padding: 25px; text-align: center; margin: 25px 0; border-radius: 8px;">
+              <span style="font-size: 36px; font-weight: bold; color: white; letter-spacing: 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${code}</span>
+            </div>
+            
+            <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 15px; margin: 20px 0;">
+              <p style="color: #856404; margin: 0; font-size: 14px;">
+                <strong>Important:</strong> This verification code will expire in 5 minutes. Please use it promptly.
+              </p>
+            </div>
+            
+            <p style="color: #555; line-height: 1.6;">If you did not register for a Dramini account, please ignore this email.</p>
+            
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+            
+            <div style="text-align: center; color: #999; font-size: 12px;">
+              <p style="margin: 0;">This email was sent automatically by Dramini system.</p>
+              <p style="margin: 5px 0 0 0;">Please do not reply to this email.</p>
+            </div>
           </div>
-          <p>验证码有效期为 5 分钟，请及时使用。</p>
-          <p>如果您没有注册 Dramini 账户，请忽略此邮件。</p>
-          <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
-          <p style="color: #666; font-size: 12px;">此邮件由系统自动发送，请勿回复。</p>
         </div>
       `,
     }
