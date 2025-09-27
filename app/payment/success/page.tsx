@@ -118,23 +118,27 @@ function PaymentSuccessContent() {
           
                  {paymentInfo?.success && (
                    <div className="space-y-3 mb-6">
-                     <div className="flex items-center justify-center gap-2 text-yellow-400">
-                       <Coins className="w-5 h-5" />
-                       <span className="text-xl font-bold">
-                         +{paymentInfo.metadata?.coins || 0} 金币
-                       </span>
-                     </div>
-                     {paymentInfo.metadata?.bonus && paymentInfo.metadata.bonus > 0 && (
-                       <div className="text-sm text-yellow-300">
-                         +{paymentInfo.metadata.bonus} 奖励金币
-                       </div>
+                     {sessionId && (
+                       <>
+                         <div className="flex items-center justify-center gap-2 text-yellow-400">
+                           <Coins className="w-5 h-5" />
+                           <span className="text-xl font-bold">
+                             +{paymentInfo.metadata?.coins || 0} 金币
+                           </span>
+                         </div>
+                         {paymentInfo.metadata?.bonus && paymentInfo.metadata.bonus > 0 && (
+                           <div className="text-sm text-yellow-300">
+                             +{paymentInfo.metadata.bonus} 奖励金币
+                           </div>
+                         )}
+                         <p className="text-gray-300">
+                           套餐: {paymentInfo.metadata?.plan || 'Unknown'}
+                         </p>
+                       </>
                      )}
-                     <p className="text-gray-300">
-                       套餐: {paymentInfo.metadata?.plan || 'Unknown'}
-                     </p>
                      {!sessionId && !orderId && (
-                       <div className="text-sm text-blue-300">
-                         PayPal 支付成功！金币将通过 webhook 自动添加。
+                       <div className="text-gray-300">
+                         支付已成功处理
                        </div>
                      )}
                    </div>
