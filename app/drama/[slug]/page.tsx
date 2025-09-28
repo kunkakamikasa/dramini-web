@@ -324,9 +324,10 @@ export default function DramaPage() {
     <div className="min-h-screen bg-black text-white">
       <Header />
       
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)]">
-        <div className="flex-1 relative bg-gray-900">
-          <div className="relative w-full h-full flex items-center justify-center p-3 lg:p-6">
+      <div className="pt-20">
+        <div className="flex flex-col lg:flex-row h-[calc(100vh-100px)]">
+          <div className="flex-1 relative bg-gray-900">
+            <div className="relative w-full h-full flex items-center justify-center p-3 lg:p-6">
             {currentEpisode ? (
               <div 
                 ref={containerRef}
@@ -526,6 +527,7 @@ export default function DramaPage() {
               ))}
             </div>
           </div>
+        </div>
         </div>
       </div>
 
