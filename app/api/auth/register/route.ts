@@ -21,9 +21,9 @@ export async function POST(request: NextRequest) {
     // 验证验证码
     console.log('Registration attempt for email:', email)
     console.log('Verification code provided:', verificationCode)
-    console.log('Current verification codes in storage:', verificationCodes.keys())
+    console.log('Current verification codes in storage:', await verificationCodes.keys())
     
-    const storedData = verificationCodes.get(email)
+    const storedData = await verificationCodes.get(email)
     console.log('Stored data for email:', storedData)
     
     if (!storedData) {
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (Date.now() > storedData.expiresAt) {
-      verificationCodes.delete(email)
+      await verificationCodes.delete(email)
       return NextResponse.json({ error: 'Verification code expired' }, { status: 400 })
     }
 
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 验证成功，删除验证码
-    verificationCodes.delete(email)
+    await verificationCodes.delete(email)
     
     // 检查用户是否已存在
     if (users.has(email)) {

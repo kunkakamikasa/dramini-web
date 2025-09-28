@@ -121,11 +121,11 @@ export async function POST(request: NextRequest) {
     const expiresAt = Date.now() + 5 * 60 * 1000 // 5分钟后过期
 
     // 存储验证码
-    verificationCodes.set(email, { code, expiresAt })
+    await verificationCodes.set(email, { code, expiresAt })
     console.log('Verification code stored for email:', email)
     console.log('Code:', code)
     console.log('Expires at:', new Date(expiresAt).toISOString())
-    console.log('Current verification codes:', verificationCodes.keys())
+    console.log('Current verification codes:', await verificationCodes.keys())
 
     // 发送邮件
     console.log('Creating transporter...')
