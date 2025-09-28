@@ -124,6 +124,12 @@ export async function startPayPalCheckout(payload: { tierKey: string; userId: st
     
     // 检查是否有 checkout URL
     if (data.checkoutUrl) {
+      // 存储订单ID用于后续捕获
+      if (data.paypalOrderId) {
+        localStorage.setItem('paypalOrderId', data.paypalOrderId);
+        localStorage.setItem('paypalOrderData', JSON.stringify(data));
+      }
+      
       // 重定向到 PayPal 支付页面
       window.location.href = data.checkoutUrl;
     } else {
@@ -133,6 +139,35 @@ export async function startPayPalCheckout(payload: { tierKey: string; userId: st
   } catch (error) {
     console.error('PayPal payment error:', error);
     analytics.error('paypal_checkout_failed', error instanceof Error ? error.message : 'Payment failed');
+    throw error;
+  }
+}
+
+// PayPal 支付捕获
+export async function capturePayPalPayment(orderId: string) {
+  try {
+    const response = await fetch(`${API_BASE}/user/purchase/capture/paypal`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ orderId }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`PayPal capture failed: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    // Track success event
+    if (data.success) {
+      analytics.checkoutSuccess('paypal', 0, orderId);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('PayPal capture error:', error);
     throw error;
   }
 }

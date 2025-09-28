@@ -11,6 +11,8 @@ function PaymentSuccessContent() {
   const searchParams = useSearchParams()
   const sessionId = searchParams.get('session_id')
   const orderId = searchParams.get('order_id')
+  const token = searchParams.get('token')
+  const payerId = searchParams.get('PayerID')
   const [verifying, setVerifying] = useState(true)
   const [paymentInfo, setPaymentInfo] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
@@ -20,6 +22,9 @@ function PaymentSuccessContent() {
       verifyStripePayment(sessionId)
     } else if (orderId) {
       verifyPayPalPayment(orderId)
+    } else if (token && payerId) {
+      // PayPal 支付成功，需要捕获
+      capturePayPalPayment(token)
     } else {
       // PayPal 支付成功但没有 order_id，显示通用成功信息
       setPaymentInfo({
@@ -31,7 +36,7 @@ function PaymentSuccessContent() {
       })
       setVerifying(false)
     }
-  }, [sessionId, orderId])
+  }, [sessionId, orderId, token, payerId])
 
   const verifyStripePayment = async (sessionId: string) => {
     try {
@@ -76,6 +81,44 @@ function PaymentSuccessContent() {
     } catch (error) {
       console.error('PayPal payment verification failed:', error)
       setError('Payment verification failed')
+    } finally {
+      setVerifying(false)
+    }
+  }
+
+  const capturePayPalPayment = async (token: string) => {
+    try {
+      console.log('Capturing PayPal payment for token:', token)
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'https://dramini-api.onrender.com/api/v1'}/user/purchase/capture/paypal`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ orderId: token }),
+      })
+      
+      if (!response.ok) {
+        throw new Error('PayPal capture failed')
+      }
+      
+      const data = await response.json()
+      console.log('PayPal capture result:', data)
+      
+      if (data.success) {
+        setPaymentInfo({
+          success: true,
+          metadata: {
+            coins: 0, // 金币会通过webhook添加
+            plan: 'PayPal Payment'
+          }
+        })
+      } else {
+        throw new Error('PayPal capture was not successful')
+      }
+    } catch (error) {
+      console.error('PayPal capture failed:', error)
+      setError('PayPal payment capture failed')
     } finally {
       setVerifying(false)
     }
