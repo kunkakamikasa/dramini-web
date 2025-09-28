@@ -3,6 +3,7 @@
 import { useState, Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import toast from 'react-hot-toast'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -44,7 +45,7 @@ function LoginContent() {
 
   const sendVerificationCode = async () => {
     if (!formData.email) {
-      alert('Please enter your email first')
+      toast.error('Please enter your email first')
       return
     }
 
@@ -62,14 +63,14 @@ function LoginContent() {
         setVerificationSent(true)
         setCountdown(60) // 开始60秒倒计时
         setCanResend(false) // 禁用重新发送按钮
-        alert('Verification code sent to your email')
+        toast.success('Verification code sent to your email!')
       } else {
         const errorData = await response.json()
-        alert(errorData.error || 'Failed to send verification code')
+        toast.error(errorData.error || 'Failed to send verification code')
       }
     } catch (error) {
       console.error('Send verification code error:', error)
-      alert('Failed to send verification code')
+      toast.error('Failed to send verification code')
     } finally {
       setSendingCode(false)
     }
@@ -99,10 +100,11 @@ function LoginContent() {
           localStorage.setItem('userEmail', data.email)
           localStorage.setItem('userName', data.name)
           
+          toast.success('Login successful!')
           // 跳转到原页面或首页
           router.push(redirectTo)
         } else {
-          alert('Login failed. Please check your credentials.')
+          toast.error('Login failed. Please check your credentials.')
         }
       } else {
         // 注册逻辑
@@ -125,15 +127,17 @@ function LoginContent() {
           localStorage.setItem('userEmail', data.email)
           localStorage.setItem('userName', data.name)
           
+          toast.success('Account created successfully!')
           // 跳转到原页面或首页
           router.push(redirectTo)
         } else {
-          alert('Registration failed. Please try again.')
+          const errorData = await response.json()
+          toast.error(errorData.error || 'Registration failed. Please try again.')
         }
       }
     } catch (error) {
       console.error('Auth error:', error)
-      alert('An error occurred. Please try again.')
+      toast.error('An error occurred. Please try again.')
     } finally {
       setLoading(false)
     }

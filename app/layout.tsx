@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { ToastProvider } from '@/components/toast-provider'
 
 export const metadata: Metadata = {
   title: 'Dramini',
@@ -15,6 +16,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-sans">
         {children}
+        <ToastProvider />
       </body>
     </html>
   )
