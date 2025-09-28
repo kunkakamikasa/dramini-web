@@ -36,7 +36,13 @@ function PaymentSuccessContent() {
       })
       setVerifying(false)
     }
-  }, [sessionId, orderId, token, payerId])
+    
+    // 支付成功后刷新用户状态
+    if (paymentInfo?.success) {
+      // 触发 Header 组件刷新用户状态
+      window.dispatchEvent(new Event('storage'))
+    }
+  }, [sessionId, orderId, token, payerId, paymentInfo?.success])
 
   const verifyStripePayment = async (sessionId: string) => {
     try {
@@ -54,6 +60,11 @@ function PaymentSuccessContent() {
       
       const data = await response.json()
       setPaymentInfo(data)
+      
+      // 支付验证成功后刷新用户状态
+      if (data.success) {
+        window.dispatchEvent(new Event('storage'))
+      }
     } catch (error) {
       console.error('Stripe payment verification failed:', error)
       setError('Payment verification failed')
@@ -78,6 +89,11 @@ function PaymentSuccessContent() {
       
       const data = await response.json()
       setPaymentInfo(data)
+      
+      // 支付验证成功后刷新用户状态
+      if (data.success) {
+        window.dispatchEvent(new Event('storage'))
+      }
     } catch (error) {
       console.error('PayPal payment verification failed:', error)
       setError('Payment verification failed')
