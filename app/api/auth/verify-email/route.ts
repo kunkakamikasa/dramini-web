@@ -122,6 +122,10 @@ export async function POST(request: NextRequest) {
 
     // 存储验证码
     verificationCodes.set(email, { code, expiresAt })
+    console.log('Verification code stored for email:', email)
+    console.log('Code:', code)
+    console.log('Expires at:', new Date(expiresAt).toISOString())
+    console.log('Current verification codes:', Array.from(verificationCodes.keys()))
 
     // 发送邮件
     console.log('Creating transporter...')

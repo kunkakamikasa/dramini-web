@@ -19,9 +19,15 @@ export async function POST(request: NextRequest) {
     }
 
     // 验证验证码
+    console.log('Registration attempt for email:', email)
+    console.log('Verification code provided:', verificationCode)
+    console.log('Current verification codes in storage:', Array.from(verificationCodes.keys()))
+    
     const storedData = verificationCodes.get(email)
+    console.log('Stored data for email:', storedData)
     
     if (!storedData) {
+      console.log('Verification code not found for email:', email)
       return NextResponse.json({ error: 'Verification code not found' }, { status: 400 })
     }
 
