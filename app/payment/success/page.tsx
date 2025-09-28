@@ -166,17 +166,17 @@ function PaymentSuccessContent() {
                          <div className="flex items-center justify-center gap-2 text-yellow-400">
                            <Coins className="w-5 h-5" />
                            <span className="text-xl font-bold">
-                             +{paymentInfo.metadata?.coins || 0} 金币
+                             +{paymentInfo.creditedCoins || 0} 金币
                            </span>
                          </div>
-                         {paymentInfo.metadata?.bonus && paymentInfo.metadata.bonus > 0 && (
-                           <div className="text-sm text-yellow-300">
-                             +{paymentInfo.metadata.bonus} 奖励金币
-                           </div>
-                         )}
                          <p className="text-gray-300">
-                           套餐: {paymentInfo.metadata?.plan || 'Unknown'}
+                           套餐: {paymentInfo.plan || 'Unknown'}
                          </p>
+                         {paymentInfo.balance !== undefined && (
+                           <p className="text-sm text-gray-400">
+                             当前余额: {paymentInfo.balance} 金币
+                           </p>
+                         )}
                        </>
                      )}
                      {!sessionId && !orderId && (
