@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Header } from '@/components/Header'
 import { 
   Play, 
   Pause,
@@ -321,42 +322,8 @@ export default function DramaPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <header className="flex items-center justify-between p-4 bg-black border-b border-gray-800">
-        <div className="flex items-center gap-4">
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-          </Link>
-          <div className="text-2xl font-bold text-red-500">Dramini</div>
-          <nav className="hidden md:flex items-center gap-6 ml-8">
-            <Link href="/" className="text-white hover:text-red-500 transition-colors">Home</Link>
-            <Link href="/browse" className="text-white hover:text-red-500 transition-colors">Categories</Link>
-            <a href="#" className="text-white hover:text-red-500 transition-colors">Fandom</a>
-            <a href="#" className="text-white hover:text-red-500 transition-colors">Brand</a>
-            <a href="#" className="text-white hover:text-red-500 transition-colors">Contest</a>
-          </nav>
-        </div>
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
-            <Search className="w-4 h-4" />
-            <span className="ml-2 hidden sm:inline">Search</span>
-          </Button>
-          <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
-            <Download className="w-4 h-4" />
-            <span className="ml-2 hidden sm:inline">Download</span>
-          </Button>
-          <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
-            <History className="w-4 h-4" />
-            <span className="ml-2 hidden sm:inline">History</span>
-          </Button>
-          <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
-            English
-          </Button>
-          <div className="w-8 h-8 bg-gray-600 rounded-full"></div>
-        </div>
-      </header>
-
+      <Header />
+      
       <div className="bg-gray-800 text-xs text-gray-400 p-2 text-center">
         {debugInfo} | Episodes: {titleData.episodes.length} | Volume: {Math.round(volume * 100)}%
       </div>
@@ -517,25 +484,6 @@ export default function DramaPage() {
         </div>
 
         <div className="w-96 bg-gray-900 border-l border-gray-800 flex flex-col">
-          <div className="p-4 border-b border-gray-800">
-            <h3 className="text-lg font-semibold mb-2">Plot of Episode {currentEpisode?.episodeNum || 1}</h3>
-            <p className="text-gray-400 text-sm leading-relaxed">
-              {titleData?.synopsis || "During Eric and Grace's wedding anniversary party, Grace's stepsister Amanda suddenly appears and demands that Grace give Eric back to her, shocking everyone at the party..."}
-            </p>
-            <Button variant="link" className="text-red-500 p-0 h-auto text-sm">More</Button>
-          </div>
-
-          <div className="p-4 border-b border-gray-800">
-            <div className="flex flex-wrap gap-2">
-              <Badge className="bg-gray-800 text-gray-300">Sentimental</Badge>
-              <Badge className="bg-gray-800 text-gray-300">Emotional</Badge>
-              <Badge className="bg-gray-800 text-gray-300">USA</Badge>
-              <Badge className="bg-gray-800 text-gray-300">Hospital</Badge>
-              <Badge className="bg-gray-800 text-gray-300">Mansion</Badge>
-              <Badge className="bg-gray-800 text-gray-300">Office</Badge>
-            </div>
-          </div>
-
           <div className="p-4 border-b border-gray-800">
             <div className="flex items-center justify-between">
               <div className="flex gap-4">

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from './ui/button';
-import { Search, Menu, X, User, LogOut } from 'lucide-react';
+import { Search, Menu, X, User, LogOut, Coins } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { analytics } from '@/lib/analytics';
 
@@ -19,18 +19,37 @@ export function Header() {
   // 确保组件在客户端挂载后再访问localStorage
   useEffect(() => {
     setMounted(true);
+    checkLoginStatus();
+  }, []);
+
+  // 监听localStorage变化
+  useEffect(() => {
+    const handleStorageChange = () => {
+      checkLoginStatus();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const checkLoginStatus = () => {
     if (typeof window !== 'undefined') {
-      const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        try {
-          setUser(JSON.parse(savedUser));
-        } catch (error) {
-          console.error('Failed to parse user data');
-          localStorage.removeItem('user');
-        }
+      const userId = localStorage.getItem('userId');
+      const userEmail = localStorage.getItem('userEmail');
+      const userName = localStorage.getItem('userName');
+      
+      if (userId && userEmail && userName) {
+        setUser({
+          id: userId,
+          email: userEmail,
+          name: userName,
+          coins: 0 // 这里可以从API获取真实金币数
+        });
+      } else {
+        setUser(null);
       }
     }
-  }, []);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -42,6 +61,7 @@ export function Header() {
   }, []);
 
   const navigation = [
+    { name: 'Home', href: '/' },
     { name: 'Browse', href: '/browse' },
     { name: 'Top Charts', href: '/top' },
     { name: 'Categories', href: '/categories' },
@@ -55,10 +75,13 @@ export function Header() {
   const handleSignOut = () => {
     setUser(null);
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userName');
     }
     setShowUserMenu(false);
+    // 刷新页面以确保状态更新
+    window.location.reload();
   };
 
   // 在客户端挂载前显示简化版本
@@ -67,12 +90,16 @@ export function Header() {
       <header className="fixed top-0 left-0 right-0 z-50 py-4 bg-transparent">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="text-2xl font-bold text-primary">
+            <Link href="/" className="text-2xl font-bold text-red-500">
               Dramini
             </Link>
             <div className="hidden md:flex items-center space-x-4">
-              <Button variant="ghost">Sign In</Button>
-              <Button className="bg-primary hover:bg-primary/90">Sign Up</Button>
+              <Link href="/login">
+                <Button variant="ghost">Sign In</Button>
+              </Link>
+              <Link href="/login">
+                <Button className="bg-red-600 hover:bg-red-700">Sign Up</Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -85,7 +112,7 @@ export function Header() {
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
         isScrolled 
-          ? 'py-2 bg-black/50 backdrop-blur-md border-b border-border' 
+          ? 'py-2 bg-black/50 backdrop-blur-md border-b border-gray-800' 
           : 'py-4 bg-transparent'
       )}
     >
@@ -94,7 +121,7 @@ export function Header() {
           <div className="flex items-center space-x-8">
             <Link 
               href="/" 
-              className="text-2xl font-bold text-primary hover:text-primary/80 transition-colors"
+              className="text-2xl font-bold text-red-500 hover:text-red-400 transition-colors"
               onClick={() => analytics.pageView('/')}
             >
               Dramini
@@ -106,10 +133,10 @@ export function Header() {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    'text-sm font-medium transition-colors hover:text-foreground/80',
+                    'text-sm font-medium transition-colors hover:text-white/80',
                     pathname === item.href 
-                      ? 'text-foreground' 
-                      : 'text-foreground/60'
+                      ? 'text-white' 
+                      : 'text-white/60'
                   )}
                   onClick={() => handleNavClick(item.name)}
                 >
@@ -127,40 +154,45 @@ export function Header() {
             {user ? (
               <div className="relative">
                 <div className="flex items-center gap-3">
-                  <div className="text-sm text-gray-300">
-                    {user.coins || 0} 🪙
+                  <div className="flex items-center gap-1 text-yellow-400">
+                    <Coins className="w-4 h-4" />
+                    <span className="text-sm font-semibold">{user.coins || 0}</span>
                   </div>
                   <Button 
                     variant="ghost" 
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 p-1"
                     onClick={() => setShowUserMenu(!showUserMenu)}
                   >
-                    <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg">
                       <span className="text-white text-sm font-bold">
                         {user.name?.charAt(0).toUpperCase() || 'U'}
                       </span>
                     </div>
-                    <span className="text-white">{user.name || 'User'}</span>
                   </Button>
                 </div>
                 
                 {showUserMenu && (
                   <div className="absolute right-0 top-full mt-2 w-48 bg-gray-900 border border-gray-700 rounded-md shadow-lg z-50">
                     <div className="py-1">
+                      <div className="px-4 py-2 border-b border-gray-700">
+                        <div className="text-white font-semibold">{user.name}</div>
+                        <div className="text-gray-400 text-sm">{user.email}</div>
+                      </div>
                       <Link 
-                        href="/account" 
+                        href="/profile" 
                         className="flex items-center px-4 py-2 text-white hover:bg-gray-800"
                         onClick={() => setShowUserMenu(false)}
                       >
                         <User className="w-4 h-4 mr-2" />
-                        My Account
+                        Profile
                       </Link>
                       <Link 
-                        href="/coins" 
+                        href="/profile" 
                         className="flex items-center px-4 py-2 text-white hover:bg-gray-800"
                         onClick={() => setShowUserMenu(false)}
                       >
-                        🪙 Buy Coins
+                        <Coins className="w-4 h-4 mr-2" />
+                        My Coins
                       </Link>
                       <hr className="border-gray-700 my-1" />
                       <button
@@ -176,11 +208,11 @@ export function Header() {
               </div>
             ) : (
               <>
-                <Link href="/auth/signin">
+                <Link href="/login">
                   <Button variant="ghost">Sign In</Button>
                 </Link>
-                <Link href="/auth/signup">
-                  <Button className="bg-primary hover:bg-primary/90">Sign Up</Button>
+                <Link href="/login">
+                  <Button className="bg-red-600 hover:bg-red-700">Sign Up</Button>
                 </Link>
               </>
             )}
@@ -196,6 +228,65 @@ export function Header() {
           </Button>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-black/95 backdrop-blur-md border-t border-gray-800">
+          <div className="px-4 py-4 space-y-4">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="block text-white hover:text-red-400 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {item.name}
+              </Link>
+            ))}
+            <hr className="border-gray-700" />
+            {user ? (
+              <div className="space-y-2">
+                <div className="text-white font-semibold">{user.name}</div>
+                <div className="text-gray-400 text-sm">{user.email}</div>
+                <div className="flex items-center gap-1 text-yellow-400">
+                  <Coins className="w-4 h-4" />
+                  <span className="text-sm">{user.coins || 0} coins</span>
+                </div>
+                <Link 
+                  href="/profile" 
+                  className="block text-white hover:text-red-400 transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Profile
+                </Link>
+                <button
+                  className="block text-red-400 hover:text-red-300 transition-colors"
+                  onClick={handleSignOut}
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Link 
+                  href="/login" 
+                  className="block text-white hover:text-red-400 transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+                <Link 
+                  href="/login" 
+                  className="block text-white hover:text-red-400 transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
