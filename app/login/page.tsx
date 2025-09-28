@@ -100,6 +100,9 @@ function LoginContent() {
           localStorage.setItem('userEmail', data.email)
           localStorage.setItem('userName', data.name)
           
+          // 触发storage事件，通知其他组件更新登录状态
+          window.dispatchEvent(new Event('storage'))
+          
           toast.success('Login successful!')
           // 跳转到原页面或首页
           router.push(redirectTo)
@@ -126,6 +129,9 @@ function LoginContent() {
           localStorage.setItem('userId', data.userId)
           localStorage.setItem('userEmail', data.email)
           localStorage.setItem('userName', data.name)
+          
+          // 触发storage事件，通知其他组件更新登录状态
+          window.dispatchEvent(new Event('storage'))
           
           toast.success('Account created successfully!')
           // 跳转到原页面或首页

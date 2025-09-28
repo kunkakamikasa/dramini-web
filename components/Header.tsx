@@ -32,19 +32,42 @@ export function Header() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const checkLoginStatus = () => {
+  const checkLoginStatus = async () => {
     if (typeof window !== 'undefined') {
       const userId = localStorage.getItem('userId');
       const userEmail = localStorage.getItem('userEmail');
       const userName = localStorage.getItem('userName');
       
       if (userId && userEmail && userName) {
-        setUser({
-          id: userId,
-          email: userEmail,
-          name: userName,
-          coins: 0 // 这里可以从API获取真实金币数
-        });
+        // 尝试从API获取用户金币数
+        try {
+          const response = await fetch('/api/user/profile');
+          if (response.ok) {
+            const userData = await response.json();
+            setUser({
+              id: userId,
+              email: userEmail,
+              name: userName,
+              coins: userData.coins || 0
+            });
+          } else {
+            // API失败时使用默认值
+            setUser({
+              id: userId,
+              email: userEmail,
+              name: userName,
+              coins: 0
+            });
+          }
+        } catch (error) {
+          // 网络错误时使用默认值
+          setUser({
+            id: userId,
+            email: userEmail,
+            name: userName,
+            coins: 0
+          });
+        }
       } else {
         setUser(null);
       }
