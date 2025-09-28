@@ -41,7 +41,7 @@ export function Header() {
       if (userId && userEmail && userName) {
         // 尝试从API获取用户金币数
         try {
-          const response = await fetch('/api/user/profile');
+          const response = await fetch(`/api/user/profile?userId=${encodeURIComponent(userId)}`);
           if (response.ok) {
             const userData = await response.json();
             setUser({
