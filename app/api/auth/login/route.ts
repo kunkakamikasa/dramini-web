@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { users } from '@/lib/auth-storage'
-import { PrismaClient } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
-const prisma = new PrismaClient()
-
-// 登录
+// 登录 - 直接调用API端点
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json()
@@ -15,28 +11,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing email or password' }, { status: 400 })
     }
     
-    // 查找用户
-    const user = await users.findByEmail(email)
-    if (!user) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
-    }
+    console.log('Login attempt for email:', email)
     
-    // 验证密码（这里需要从数据库获取密码进行比较）
-    // 注意：这里简化了密码验证，生产环境应该使用加密密码
-    const dbUser = await prisma.user.findUnique({
-      where: { email },
-      select: { password: true }
+    // 调用API的登录端点
+    const apiBase = process.env.NEXT_PUBLIC_API_BASE || 'https://dramini-api.onrender.com'
+    const response = await fetch(`${apiBase}/api/v1/user/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password })
     })
     
-    if (!dbUser || dbUser.password !== password) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.log('API login failed:', errorData)
+      return NextResponse.json({ error: errorData.error || 'Login failed' }, { status: response.status })
     }
     
+    const data = await response.json()
+    console.log('API login successful:', data.user.id)
+    
     return NextResponse.json({
-      userId: user.id,
-      email: user.email,
-      name: user.name,
-      coins: user.coins
+      userId: data.user.id,
+      email: data.user.email,
+      name: data.user.name,
+      coins: data.user.coins
     })
   } catch (error) {
     console.error('Login error:', error)
