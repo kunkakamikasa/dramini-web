@@ -324,13 +324,9 @@ export default function DramaPage() {
     <div className="min-h-screen bg-black text-white">
       <Header />
       
-      <div className="bg-gray-800 text-xs text-gray-400 p-2 text-center">
-        {debugInfo} | Episodes: {titleData.episodes.length} | Volume: {Math.round(volume * 100)}%
-      </div>
-
-      <div className="flex h-[calc(100vh-120px)]">
+      <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)]">
         <div className="flex-1 relative bg-gray-900">
-          <div className="relative w-full h-full flex items-center justify-center p-6">
+          <div className="relative w-full h-full flex items-center justify-center p-3 lg:p-6">
             {currentEpisode ? (
               <div 
                 ref={containerRef}
@@ -483,20 +479,27 @@ export default function DramaPage() {
           </div>
         </div>
 
-        <div className="w-96 bg-gray-900 border-l border-gray-800 flex flex-col">
-          <div className="p-4 border-b border-gray-800">
+        <div className="w-full lg:w-96 bg-gray-900 border-t lg:border-t-0 lg:border-l border-gray-800 flex flex-col max-h-[50vh] lg:max-h-none">
+          <div className="p-3 lg:p-4 border-b border-gray-800">
+            <h3 className="text-base lg:text-lg font-semibold mb-2 text-white">剧情介绍</h3>
+            <p className="text-gray-400 text-xs lg:text-sm leading-relaxed">
+              {titleData?.synopsis || "这是一部精彩的短剧，讲述了扣人心弦的故事。剧中人物关系复杂，情节跌宕起伏，值得一看。"}
+            </p>
+          </div>
+
+          <div className="p-3 lg:p-4 border-b border-gray-800">
             <div className="flex items-center justify-between">
-              <div className="flex gap-4">
-                <button className="px-3 py-1 text-sm font-medium border-b-2 border-red-500 text-red-500">
+              <div className="flex gap-2 lg:gap-4">
+                <button className="px-2 lg:px-3 py-1 text-xs lg:text-sm font-medium border-b-2 border-red-500 text-red-500">
                   0 - 49
                 </button>
               </div>
-              <Button variant="link" className="text-gray-400 text-sm p-0">All Episodes ›</Button>
+              <Button variant="link" className="text-gray-400 text-xs lg:text-sm p-0">All Episodes ›</Button>
             </div>
           </div>
 
-          <div className="flex-1 p-4 overflow-y-auto">
-            <div className="grid grid-cols-6 gap-2">
+          <div className="flex-1 p-3 lg:p-4 overflow-y-auto">
+            <div className="grid grid-cols-4 lg:grid-cols-6 gap-1 lg:gap-2">
               <button className="aspect-square bg-gray-800 rounded-lg flex items-center justify-center text-xs font-medium text-gray-300 hover:bg-gray-700">
                 Trailer
               </button>

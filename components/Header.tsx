@@ -147,10 +147,6 @@ export function Header() {
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" size="icon">
-              <Search className="h-5 w-5" />
-            </Button>
-            
             {user ? (
               <div className="relative">
                 <div className="flex items-center gap-3">
@@ -237,7 +233,7 @@ export function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="block text-white hover:text-red-400 transition-colors"
+                className="block text-white hover:text-red-400 transition-colors py-2"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {item.name}
@@ -245,22 +241,31 @@ export function Header() {
             ))}
             <hr className="border-gray-700" />
             {user ? (
-              <div className="space-y-2">
-                <div className="text-white font-semibold">{user.name}</div>
-                <div className="text-gray-400 text-sm">{user.email}</div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-white text-sm font-bold">
+                      {user.name?.charAt(0).toUpperCase() || 'U'}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="text-white font-semibold">{user.name}</div>
+                    <div className="text-gray-400 text-sm">{user.email}</div>
+                  </div>
+                </div>
                 <div className="flex items-center gap-1 text-yellow-400">
                   <Coins className="w-4 h-4" />
                   <span className="text-sm">{user.coins || 0} coins</span>
                 </div>
                 <Link 
                   href="/profile" 
-                  className="block text-white hover:text-red-400 transition-colors"
+                  className="block text-white hover:text-red-400 transition-colors py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Profile
                 </Link>
                 <button
-                  className="block text-red-400 hover:text-red-300 transition-colors"
+                  className="block text-red-400 hover:text-red-300 transition-colors py-2"
                   onClick={handleSignOut}
                 >
                   Sign Out
@@ -270,14 +275,14 @@ export function Header() {
               <div className="space-y-2">
                 <Link 
                   href="/login" 
-                  className="block text-white hover:text-red-400 transition-colors"
+                  className="block text-white hover:text-red-400 transition-colors py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Sign In
                 </Link>
                 <Link 
                   href="/login" 
-                  className="block text-white hover:text-red-400 transition-colors"
+                  className="block text-white hover:text-red-400 transition-colors py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Sign Up

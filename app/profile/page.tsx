@@ -15,7 +15,10 @@ import {
   Play, 
   Clock,
   TrendingUp,
-  Star
+  Star,
+  X,
+  CreditCard,
+  Zap
 } from 'lucide-react'
 
 interface UserData {
@@ -35,10 +38,23 @@ interface WatchHistoryItem {
   thumbnail: string
 }
 
+interface PaymentPackage {
+  id: string
+  name: string
+  coins: number
+  bonusCoins: number
+  priceUsd: number
+  isPopular?: boolean
+}
+
 export default function ProfilePage() {
   const router = useRouter()
   const [userData, setUserData] = useState<UserData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showTopUpModal, setShowTopUpModal] = useState(false)
+  const [paymentPackages, setPaymentPackages] = useState<PaymentPackage[]>([])
+  const [selectedPackage, setSelectedPackage] = useState<PaymentPackage | null>(null)
+  const [paymentMethod, setPaymentMethod] = useState<'paypal' | 'card'>('paypal')
 
   useEffect(() => {
     // 检查用户是否已登录
@@ -83,6 +99,65 @@ export default function ProfilePage() {
       })
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchPaymentPackages = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/v1/payment-packages`)
+      if (response.ok) {
+        const data = await response.json()
+        setPaymentPackages(data.packages || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch payment packages:', error)
+      // 使用默认套餐
+      setPaymentPackages([
+        { id: '1', name: 'Starter Pack', coins: 100, bonusCoins: 0, priceUsd: 0.99 },
+        { id: '2', name: 'Popular Pack', coins: 500, bonusCoins: 50, priceUsd: 4.99, isPopular: true },
+        { id: '3', name: 'Premium Pack', coins: 1000, bonusCoins: 200, priceUsd: 9.99 },
+        { id: '4', name: 'VIP Pack', coins: 2000, bonusCoins: 500, priceUsd: 19.99 }
+      ])
+    }
+  }
+
+  const handleTopUp = async () => {
+    if (!selectedPackage) {
+      alert('Please select a package first')
+      return
+    }
+
+    const userId = localStorage.getItem('userId')
+    if (!userId) {
+      alert('Please login first')
+      return
+    }
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/v1/user/purchase/checkout/${paymentMethod}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tierKey: selectedPackage.id,
+          userId: userId
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.checkoutUrl) {
+          window.location.href = data.checkoutUrl
+        } else {
+          alert('Payment initiated successfully!')
+        }
+      } else {
+        alert('Payment failed. Please try again.')
+      }
+    } catch (error) {
+      console.error('Payment error:', error)
+      alert('Payment failed. Please try again.')
     }
   }
 
@@ -164,8 +239,8 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
           {/* User Info */}
           <div className="lg:col-span-1">
             <Card className="bg-gray-900 border-gray-700">
@@ -176,9 +251,16 @@ export default function ProfilePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-white">{userData.name}</h3>
-                  <p className="text-gray-400">{userData.email}</p>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-white text-xl font-bold">
+                      {userData.name?.charAt(0).toUpperCase() || 'U'}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">{userData.name}</h3>
+                    <p className="text-gray-400">{userData.email}</p>
+                  </div>
                 </div>
                 
                 <Separator className="bg-gray-700" />
@@ -199,12 +281,16 @@ export default function ProfilePage() {
                 </div>
                 
                 <div className="pt-4">
-                  <Link href="/coins">
-                    <Button className="w-full bg-yellow-600 hover:bg-yellow-700 text-black">
-                      <Coins className="w-4 h-4 mr-2" />
-                      Top Up Coins
-                    </Button>
-                  </Link>
+                  <Button 
+                    className="w-full bg-yellow-600 hover:bg-yellow-700 text-black"
+                    onClick={() => {
+                      fetchPaymentPackages()
+                      setShowTopUpModal(true)
+                    }}
+                  >
+                    <Coins className="w-4 h-4 mr-2" />
+                    Top Up Coins
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -270,6 +356,103 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Top Up Modal */}
+      {showTopUpModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-white">Top Up Coins</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowTopUpModal(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* Payment Packages */}
+              <div className="space-y-3 mb-6">
+                {paymentPackages.map((pkg) => (
+                  <div
+                    key={pkg.id}
+                    className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                      selectedPackage?.id === pkg.id
+                        ? 'border-red-500 bg-red-500/10'
+                        : 'border-gray-700 hover:border-gray-600'
+                    }`}
+                    onClick={() => setSelectedPackage(pkg)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-white">{pkg.name}</h3>
+                          {pkg.isPopular && (
+                            <Badge className="bg-red-500 text-white text-xs">Popular</Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-yellow-400 mt-1">
+                          <Coins className="w-4 h-4" />
+                          <span className="font-semibold">{pkg.coins}</span>
+                          {pkg.bonusCoins > 0 && (
+                            <span className="text-green-400 text-sm">+{pkg.bonusCoins} bonus</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-white font-bold">${pkg.priceUsd}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Payment Methods */}
+              <div className="mb-6">
+                <h3 className="text-white font-semibold mb-3">Payment Method</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant={paymentMethod === 'paypal' ? 'default' : 'outline'}
+                    className={`${
+                      paymentMethod === 'paypal'
+                        ? 'bg-blue-600 hover:bg-blue-700'
+                        : 'border-gray-600 text-gray-300 hover:bg-gray-800'
+                    }`}
+                    onClick={() => setPaymentMethod('paypal')}
+                  >
+                    PayPal
+                  </Button>
+                  <Button
+                    variant={paymentMethod === 'card' ? 'default' : 'outline'}
+                    className={`${
+                      paymentMethod === 'card'
+                        ? 'bg-blue-600 hover:bg-blue-700'
+                        : 'border-gray-600 text-gray-300 hover:bg-gray-800'
+                    }`}
+                    onClick={() => setPaymentMethod('card')}
+                  >
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Card
+                  </Button>
+                </div>
+              </div>
+
+              {/* Pay Button */}
+              <Button
+                className="w-full bg-red-600 hover:bg-red-700 text-white"
+                onClick={handleTopUp}
+                disabled={!selectedPackage}
+              >
+                <Zap className="w-4 h-4 mr-2" />
+                Pay Now
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
