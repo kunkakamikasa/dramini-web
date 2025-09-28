@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
-const prisma = new PrismaClient()
-
-// 获取用户资料
+// 获取用户资料 - 通过后端API
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -18,45 +15,31 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing userId' }, { status: 400 })
     }
     
-    // 从数据库获取用户信息
-    console.log('🔍 Looking up user in database...')
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        createdAt: true
-      }
+    // 调用后端API获取用户资料
+    const apiBase = process.env.NEXT_PUBLIC_API_BASE || 'https://dramini-api.onrender.com/api/v1'
+    console.log('🔍 Calling backend API:', `${apiBase}/user/profile?userId=${userId}`)
+    
+    const response = await fetch(`${apiBase}/user/profile?userId=${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     })
     
-    console.log('🔍 User lookup result:', user)
-    
-    if (!user) {
-      console.log('❌ User not found for ID:', userId)
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.log('❌ Backend API error:', errorData)
+      return NextResponse.json({ 
+        error: 'Failed to get profile from backend',
+        details: errorData.error || `HTTP ${response.status}`
+      }, { status: response.status })
     }
     
-    // 获取用户金币余额
-    console.log('🔍 Looking up user coins...')
-    const userCoins = await prisma.userCoins.findUnique({
-      where: { userId: user.id }
-    })
+    const userData = await response.json()
+    console.log('✅ Backend API response:', userData)
     
-    console.log('🔍 User coins lookup result:', userCoins)
+    return NextResponse.json(userData)
     
-    const response = {
-      id: user.id,
-      name: user.name || '',
-      email: user.email,
-      coins: userCoins?.balance || 0,
-      watchHistory: [], // 这里应该从数据库获取观看历史
-      createdAt: user.createdAt
-    }
-    
-    console.log('✅ Profile API response:', response)
-    
-    return NextResponse.json(response)
   } catch (error) {
     console.error('❌ Get profile error:', error)
     console.error('Error details:', {
