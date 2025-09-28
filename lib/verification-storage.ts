@@ -14,12 +14,12 @@ function cleanupExpiredCodes() {
   const now = Date.now()
   console.log('Cleaning up expired codes, current time:', new Date(now).toISOString())
   
-  for (const [email, data] of verificationCodesStore.entries()) {
+  verificationCodesStore.forEach((data, email) => {
     if (now > data.expiresAt) {
       console.log('Removing expired code for email:', email)
       verificationCodesStore.delete(email)
     }
-  }
+  })
   
   console.log('After cleanup, remaining codes:', Array.from(verificationCodesStore.keys()))
 }
