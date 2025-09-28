@@ -1,8 +1,4 @@
 import { verificationCodes } from './kv-storage'
-import { PrismaClient } from '@prisma/client'
-
-// 创建 Prisma 客户端
-const prisma = new PrismaClient()
 
 // 用户存储接口
 export interface UserData {
@@ -12,93 +8,87 @@ export interface UserData {
   coins: number
 }
 
-// 用户存储（使用数据库）
+// 用户存储（通过API调用）
 export const users = {
   async create(userData: { email: string; password: string; name: string }): Promise<UserData> {
     try {
-      console.log('Creating user in database:', userData.email)
+      console.log('Creating user via API:', userData.email)
       
-      const user = await prisma.user.create({
-        data: {
-          email: userData.email,
-          password: userData.password, // 注意：生产环境应该加密密码
-          name: userData.name,
-          provider: 'email',
-          status: 'ACTIVE'
-        }
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/user/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData)
       })
       
-      console.log('User created successfully:', user.id)
+      if (!response.ok) {
+        throw new Error(`API call failed: ${response.status}`)
+      }
       
-      // 创建用户金币记录
-      await prisma.userCoins.create({
-        data: {
-          userId: user.id,
-          balance: 0
-        }
-      })
+      const newUser = await response.json()
+      console.log('User created successfully via API:', newUser.id)
       
       return {
-        id: user.id,
-        email: user.email,
-        name: user.name || '',
-        coins: 0
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name || '',
+        coins: newUser.coins || 0
       }
     } catch (error) {
-      console.error('Error creating user:', error)
+      console.error('Error creating user via API:', error)
       throw error
     }
   },
   
   async findByEmail(email: string): Promise<UserData | null> {
     try {
-      console.log('Finding user by email:', email)
+      console.log('Finding user by email via API:', email)
       
-      const user = await prisma.user.findUnique({
-        where: { email },
-        include: {
-          // 这里需要关联 UserCoins，但 Prisma schema 中没有这个关系
-          // 我们需要单独查询
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/user/find-by-email?email=${encodeURIComponent(email)}`)
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log('User not found')
+          return null
         }
-      })
-      
-      if (!user) {
-        console.log('User not found')
-        return null
+        throw new Error(`API call failed: ${response.status}`)
       }
       
-      // 查询用户金币余额
-      const userCoins = await prisma.userCoins.findUnique({
-        where: { userId: user.id }
-      })
-      
-      console.log('User found:', user.id)
+      const user = await response.json()
+      console.log('User found via API:', user.id)
       
       return {
         id: user.id,
         email: user.email,
         name: user.name || '',
-        coins: userCoins?.balance || 0
+        coins: user.coins || 0
       }
     } catch (error) {
-      console.error('Error finding user:', error)
+      console.error('Error finding user via API:', error)
       return null
     }
   },
   
   async updateCoins(userId: string, coins: number): Promise<void> {
     try {
-      console.log('Updating user coins:', userId, coins)
+      console.log('Updating user coins via API:', userId, coins)
       
-      await prisma.userCoins.upsert({
-        where: { userId },
-        update: { balance: coins },
-        create: { userId, balance: coins }
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/user/${userId}/coins`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ coins })
       })
       
-      console.log('User coins updated successfully')
+      if (!response.ok) {
+        throw new Error(`API call failed: ${response.status}`)
+      }
+      
+      console.log('User coins updated successfully via API')
     } catch (error) {
-      console.error('Error updating user coins:', error)
+      console.error('Error updating user coins via API:', error)
       throw error
     }
   }
