@@ -44,25 +44,23 @@ export async function POST(request: NextRequest) {
     await verificationCodes.delete(email)
     
     // 检查用户是否已存在
-    if (users.has(email)) {
+    const existingUser = await users.findByEmail(email)
+    if (existingUser) {
       return NextResponse.json({ error: 'User already exists' }, { status: 400 })
     }
     
     // 创建新用户
-    const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    users.set(email, {
-      id: userId,
+    const newUser = await users.create({
       email,
       password, // 生产环境应该加密密码
-      name,
-      coins: 0
+      name
     })
     
     return NextResponse.json({
-      userId,
-      email,
-      name,
-      coins: 0
+      userId: newUser.id,
+      email: newUser.email,
+      name: newUser.name,
+      coins: newUser.coins
     })
   } catch (error) {
     console.error('Registration error:', error)

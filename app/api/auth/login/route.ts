@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { users } from '@/lib/auth-storage'
+import { PrismaClient } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
+
+const prisma = new PrismaClient()
 
 // 登录
 export async function POST(request: NextRequest) {
@@ -13,8 +16,19 @@ export async function POST(request: NextRequest) {
     }
     
     // 查找用户
-    const user = users.get(email)
-    if (!user || user.password !== password) {
+    const user = await users.findByEmail(email)
+    if (!user) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+    }
+    
+    // 验证密码（这里需要从数据库获取密码进行比较）
+    // 注意：这里简化了密码验证，生产环境应该使用加密密码
+    const dbUser = await prisma.user.findUnique({
+      where: { email },
+      select: { password: true }
+    })
+    
+    if (!dbUser || dbUser.password !== password) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
     }
     

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { users } from '@/lib/auth-storage'
+import { PrismaClient } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
+
+const prisma = new PrismaClient()
 
 // 获取用户资料
 export async function GET(request: NextRequest) {
@@ -13,18 +15,33 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing userId' }, { status: 400 })
     }
     
-    // 查找用户（这里简化处理，实际应该从数据库查询）
-    const user = Array.from(users.values()).find(u => u.id === userId)
+    // 从数据库获取用户信息
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true
+      }
+    })
+    
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
     
+    // 获取用户金币余额
+    const userCoins = await prisma.userCoins.findUnique({
+      where: { userId: user.id }
+    })
+    
     return NextResponse.json({
       id: user.id,
-      name: user.name,
+      name: user.name || '',
       email: user.email,
-      coins: user.coins,
-      watchHistory: [] // 这里应该从数据库获取观看历史
+      coins: userCoins?.balance || 0,
+      watchHistory: [], // 这里应该从数据库获取观看历史
+      createdAt: user.createdAt
     })
   } catch (error) {
     console.error('Get profile error:', error)
