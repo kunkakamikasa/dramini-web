@@ -5,11 +5,11 @@ export const verificationCodes = new Map<string, { code: string; expiresAt: numb
 // 清理过期的验证码
 export function cleanupExpiredCodes() {
   const now = Date.now()
-  for (const [email, data] of verificationCodes.entries()) {
+  verificationCodes.forEach((data, email) => {
     if (now > data.expiresAt) {
       verificationCodes.delete(email)
     }
-  }
+  })
 }
 
 // 定期清理过期验证码（每5分钟）
