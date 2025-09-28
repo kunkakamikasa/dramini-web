@@ -38,19 +38,27 @@ export function Header() {
       const userEmail = localStorage.getItem('userEmail');
       const userName = localStorage.getItem('userName');
       
+      console.log('🔍 Header checkLoginStatus:', { userId, userEmail, userName });
+      
       if (userId && userEmail && userName) {
         // 尝试从API获取用户金币数
         try {
+          console.log('🔍 Fetching user profile for userId:', userId);
           const response = await fetch(`/api/user/profile?userId=${encodeURIComponent(userId)}`);
+          console.log('🔍 Profile API response status:', response.status);
+          
           if (response.ok) {
             const userData = await response.json();
+            console.log('🔍 Profile API response data:', userData);
             setUser({
               id: userId,
               email: userEmail,
               name: userName,
               coins: userData.coins || 0
             });
+            console.log('✅ User state updated with coins:', userData.coins);
           } else {
+            console.log('❌ Profile API failed:', response.status);
             // API失败时使用默认值
             setUser({
               id: userId,
@@ -60,6 +68,7 @@ export function Header() {
             });
           }
         } catch (error) {
+          console.error('❌ Profile API error:', error);
           // 网络错误时使用默认值
           setUser({
             id: userId,
