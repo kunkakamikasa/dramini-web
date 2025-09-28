@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     // 验证验证码
     console.log('Registration attempt for email:', email)
     console.log('Verification code provided:', verificationCode)
-    console.log('Current verification codes in storage:', Array.from(verificationCodes.keys()))
+    console.log('Current verification codes in storage:', verificationCodes.keys())
     
     const storedData = verificationCodes.get(email)
     console.log('Stored data for email:', storedData)
