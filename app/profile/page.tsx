@@ -42,9 +42,11 @@ interface PaymentPackage {
   id: string
   name: string
   coins: number
-  bonusCoins: number
-  priceUsd: number
-  isPopular?: boolean
+  bonus: number
+  price: number
+  discount?: string | null
+  isNewUser?: boolean
+  description?: string
 }
 
 export default function ProfilePage() {
@@ -104,19 +106,52 @@ export default function ProfilePage() {
 
   const fetchPaymentPackages = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/v1/payment-packages`)
-      if (response.ok) {
-        const data = await response.json()
-        setPaymentPackages(data.packages || [])
+      const apiBase = process.env.NEXT_PUBLIC_API_BASE || 'https://dramini-api.onrender.com/api/v1'
+      const response = await fetch(`${apiBase}/payment-packages`)
+      const data = await response.json()
+      
+      if (data.ok && data.packages) {
+        // 转换数据格式以匹配PaymentModal的期望格式
+        const formattedPackages = data.packages.map((pkg: any) => ({
+          id: pkg.id,
+          name: pkg.name,
+          coins: pkg.coins,
+          bonus: pkg.bonus || 0,
+          price: pkg.price,
+          discount: pkg.discount,
+          isNewUser: pkg.isNewUser || false,
+          description: pkg.description
+        }))
+        setPaymentPackages(formattedPackages)
+      } else {
+        // 使用默认套餐作为后备
+        setPaymentPackages([
+          {
+            id: 'default1',
+            name: '入门档',
+            coins: 500,
+            bonus: 50,
+            price: 4.99,
+            discount: '+10%',
+            isNewUser: false,
+            description: '新手推荐'
+          }
+        ])
       }
     } catch (error) {
       console.error('Failed to fetch payment packages:', error)
-      // 使用默认套餐
+      // 使用默认数据
       setPaymentPackages([
-        { id: '1', name: 'Starter Pack', coins: 100, bonusCoins: 0, priceUsd: 0.99 },
-        { id: '2', name: 'Popular Pack', coins: 500, bonusCoins: 50, priceUsd: 4.99, isPopular: true },
-        { id: '3', name: 'Premium Pack', coins: 1000, bonusCoins: 200, priceUsd: 9.99 },
-        { id: '4', name: 'VIP Pack', coins: 2000, bonusCoins: 500, priceUsd: 19.99 }
+        {
+          id: 'default1',
+          name: '入门档',
+          coins: 500,
+          bonus: 50,
+          price: 4.99,
+          discount: '+10%',
+          isNewUser: false,
+          description: '新手推荐'
+        }
       ])
     }
   }
@@ -375,79 +410,127 @@ export default function ProfilePage() {
               </div>
 
               {/* Payment Packages */}
-              <div className="space-y-3 mb-6">
-                {paymentPackages.map((pkg) => (
-                  <div
-                    key={pkg.id}
-                    className={`p-4 rounded-lg border cursor-pointer transition-all ${
-                      selectedPackage?.id === pkg.id
-                        ? 'border-red-500 bg-red-500/10'
-                        : 'border-gray-700 hover:border-gray-600'
-                    }`}
-                    onClick={() => setSelectedPackage(pkg)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-white">{pkg.name}</h3>
-                          {pkg.isPopular && (
-                            <Badge className="bg-red-500 text-white text-xs">Popular</Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-yellow-400 mt-1">
-                          <Coins className="w-4 h-4" />
-                          <span className="font-semibold">{pkg.coins}</span>
-                          {pkg.bonusCoins > 0 && (
-                            <span className="text-green-400 text-sm">+{pkg.bonusCoins} bonus</span>
-                          )}
-                        </div>
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-white">充值金币</h3>
+                </div>
+
+                <div className="space-y-3">
+                  {/* 新用户特惠包 */}
+                  {paymentPackages.filter(pkg => pkg.isNewUser).map((pkg) => (
+                    <div
+                      key={pkg.id}
+                      className={`bg-gradient-to-r from-red-500 to-pink-500 rounded-lg p-4 relative overflow-hidden cursor-pointer border-2 ${
+                        selectedPackage?.id === pkg.id ? 'border-yellow-400 ring-2 ring-yellow-400/50' : 'border-transparent'
+                      } transition-all hover:scale-[1.02]`}
+                      onClick={() => setSelectedPackage(pkg)}
+                    >
+                      <div className="absolute top-2 right-2">
+                        <Badge className="bg-yellow-500 text-black font-bold">
+                          <Zap className="w-3 h-3 mr-1" />
+                          {pkg.discount}
+                        </Badge>
                       </div>
-                      <div className="text-right">
-                        <div className="text-white font-bold">${pkg.priceUsd}</div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <Coins className="w-8 h-8 text-yellow-400" />
+                          <div>
+                            <div className="text-sm opacity-90">NEW USER ONLY</div>
+                            <div className="text-2xl font-bold">{pkg.coins}<span className="text-lg">Coins</span></div>
+                            <div className="text-sm">+{pkg.bonus} Bonus</div>
+                          </div>
+                        </div>
+                        <div className="ml-auto text-right">
+                          <div className="text-2xl font-bold">${pkg.price}</div>
+                          <div className="text-sm opacity-75">{pkg.description}</div>
+                        </div>
                       </div>
                     </div>
+                  ))}
+
+                  {/* 普通套餐网格 */}
+                  <div className="grid grid-cols-3 gap-3">
+                    {paymentPackages.filter(pkg => !pkg.isNewUser).map((pkg) => (
+                      <div
+                        key={pkg.id}
+                        className={`bg-gray-700 rounded-lg p-3 text-center relative cursor-pointer border-2 ${
+                          selectedPackage?.id === pkg.id ? 'border-yellow-400 ring-2 ring-yellow-400/50' : 'border-transparent'
+                        } transition-all hover:scale-105`}
+                        onClick={() => setSelectedPackage(pkg)}
+                      >
+                        {pkg.discount && (
+                          <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white text-xs">
+                            {pkg.discount}
+                          </Badge>
+                        )}
+                        <div className={pkg.discount ? 'mt-2' : ''}>
+                          <div className="text-lg font-bold">{pkg.coins}</div>
+                          {pkg.bonus > 0 ? (
+                            <div className="text-xs">+{pkg.bonus} Bonus</div>
+                          ) : (
+                            <div className="text-xs text-gray-400">Coins</div>
+                          )}
+                          <div className="text-sm font-semibold mt-2">${pkg.price}</div>
+                          <div className="text-xs text-gray-400 mt-1">{pkg.description}</div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
 
               {/* Payment Methods */}
               <div className="mb-6">
                 <h3 className="text-white font-semibold mb-3">Payment Method</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    variant={paymentMethod === 'paypal' ? 'default' : 'outline'}
-                    className={`${
-                      paymentMethod === 'paypal'
-                        ? 'bg-blue-600 hover:bg-blue-700'
-                        : 'border-gray-600 text-gray-300 hover:bg-gray-800'
+                <div className="flex gap-3">
+                  <div 
+                    className={`flex-1 border-2 rounded-lg p-3 cursor-pointer transition-all ${
+                      paymentMethod === 'paypal' ? 'border-red-500 bg-red-500/10' : 'border-gray-600 bg-gray-800'
                     }`}
                     onClick={() => setPaymentMethod('paypal')}
                   >
-                    PayPal
-                  </Button>
-                  <Button
-                    variant={paymentMethod === 'card' ? 'default' : 'outline'}
-                    className={`${
-                      paymentMethod === 'card'
-                        ? 'bg-blue-600 hover:bg-blue-700'
-                        : 'border-gray-600 text-gray-300 hover:bg-gray-800'
+                    <div className="flex items-center justify-center">
+                      <div className="bg-blue-600 rounded px-3 py-2 text-white text-sm font-bold">
+                        PayPal
+                      </div>
+                    </div>
+                  </div>
+                  <div 
+                    className={`flex-1 border-2 rounded-lg p-3 cursor-pointer transition-all ${
+                      paymentMethod === 'card' ? 'border-red-500 bg-red-500/10' : 'border-gray-600 bg-gray-800'
                     }`}
                     onClick={() => setPaymentMethod('card')}
                   >
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Card
-                  </Button>
+                    <div className="flex items-center justify-center">
+                      <CreditCard className="w-6 h-6 text-gray-400 mr-2" />
+                      <span className="text-gray-400 text-sm">Credit Card</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
+              {/* 选中套餐信息 */}
+              {selectedPackage && (
+                <div className="bg-blue-900/30 border border-blue-500 rounded-lg p-3 mb-4">
+                  <div className="text-center">
+                    <div className="text-blue-300 text-sm">已选择充值套餐：</div>
+                    <div className="text-white font-bold">
+                      {selectedPackage.coins} 金币
+                      {selectedPackage.bonus > 0 && ` + ${selectedPackage.bonus} 奖励`} 
+                      - ${selectedPackage.price}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Pay Button */}
               <Button
-                className="w-full bg-red-600 hover:bg-red-700 text-white"
+                className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-bold py-4 text-lg rounded-lg transition-all"
                 onClick={handleTopUp}
                 disabled={!selectedPackage}
               >
                 <Zap className="w-4 h-4 mr-2" />
-                Pay Now
+                充值金币
               </Button>
             </div>
           </div>
