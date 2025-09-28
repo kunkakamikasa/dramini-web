@@ -25,7 +25,8 @@ export const verificationCodes = {
       let data: VerificationCodeData | undefined
       
       try {
-        data = await kv.get<VerificationCodeData>(key)
+        const kvData = await kv.get<VerificationCodeData>(key)
+        data = kvData || undefined
         console.log('Retrieved data from KV:', data)
       } catch (kvError) {
         console.log('KV not available, falling back to memory storage')
