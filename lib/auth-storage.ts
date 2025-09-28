@@ -14,7 +14,8 @@ export const users = {
     try {
       console.log('Creating user via API:', userData.email)
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/user/register`, {
+      const apiBase = process.env.NEXT_PUBLIC_API_BASE || 'https://dramini-api.onrender.com/api/v1'
+      const response = await fetch(`${apiBase}/user/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,7 +46,8 @@ export const users = {
     try {
       console.log('Finding user by email via API:', email)
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/user/find-by-email?email=${encodeURIComponent(email)}`)
+      const apiBase = process.env.NEXT_PUBLIC_API_BASE || 'https://dramini-api.onrender.com/api/v1'
+      const response = await fetch(`${apiBase}/user/find-by-email?email=${encodeURIComponent(email)}`)
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -74,7 +76,8 @@ export const users = {
     try {
       console.log('Updating user coins via API:', userId, coins)
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/user/${userId}/coins`, {
+      const apiBase = process.env.NEXT_PUBLIC_API_BASE || 'https://dramini-api.onrender.com/api/v1'
+      const response = await fetch(`${apiBase}/user/${userId}/coins`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -14,8 +14,8 @@ export async function POST(request: NextRequest) {
     console.log('Login attempt for email:', email)
     
     // 调用API的登录端点
-    const apiBase = process.env.NEXT_PUBLIC_API_BASE || 'https://dramini-api.onrender.com'
-    const response = await fetch(`${apiBase}/api/v1/user/login`, {
+    const apiBase = process.env.NEXT_PUBLIC_API_BASE || 'https://dramini-api.onrender.com/api/v1'
+    const response = await fetch(`${apiBase}/user/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
