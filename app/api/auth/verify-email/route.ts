@@ -202,14 +202,14 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Email and code are required' }, { status: 400 })
     }
 
-    const storedData = verificationCodes.get(email)
+    const storedData = await verificationCodes.get(email)
     
     if (!storedData) {
       return NextResponse.json({ error: 'Verification code not found' }, { status: 400 })
     }
 
     if (Date.now() > storedData.expiresAt) {
-      verificationCodes.delete(email)
+      await verificationCodes.delete(email)
       return NextResponse.json({ error: 'Verification code expired' }, { status: 400 })
     }
 
@@ -218,7 +218,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // 验证成功，删除验证码
-    verificationCodes.delete(email)
+    await verificationCodes.delete(email)
 
     return NextResponse.json({ 
       success: true, 
