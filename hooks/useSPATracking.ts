@@ -34,7 +34,7 @@ export function useSPATracking() {
         
         console.log('SPA Route change:', { from: previousPath, to: currentPath, title: pageTitle })
         
-        analytics.trackPageView(currentPath, pageTitle, referrer)
+        analytics.trackEvent("page_view", {currentPath, page: currentPath, title: pageTitle, referrer: referrer })
         
         previousPathnameRef.current = currentPath
         isInitialMountRef.current = false
@@ -112,5 +112,5 @@ export function trackRouteChange(path: string, title?: string) {
     return
   }
   
-  analytics.trackPageView(path, title || document.title, document.referrer)
+  analytics.trackEvent("page_view", {path, path: path, title: title, referrer: document.referrer })
 }

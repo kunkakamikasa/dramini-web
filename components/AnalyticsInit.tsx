@@ -6,10 +6,13 @@ import { analytics } from '@/lib/analytics';
 export function AnalyticsInit() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      analytics.trackPageView(window.location.pathname, document.title);
+      // Initialize analytics with basic tracking
+      analytics.trackEvent('page_load', { 
+        path: window.location.pathname,
+        title: document.title 
+      });
     }
   }, []);
 
   return null;
 }
-
