@@ -12,7 +12,7 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
     // 初始化Analytics - 发送到正确的endpoint
     initAnalytics({
       domain: process.env.NEXT_PUBLIC_DOMAIN || 'https://shortdramini.com',
-      endpoint: `${process.env.NEXT_PUBLIC_API_BASE || 'https://dramini-api.onrender.com'}/analytics/track`,
+      endpoint: `${process.env.NEXT_PUBLIC_API_BASE || 'https://dramini-api.onrender.com'}/api/v1/analytics/track`,
       batchSize: 10,
       flushInterval: 2000,
       sessionTimeout: 30 * 60 * 1000,
@@ -34,7 +34,7 @@ export function useAnalyticsInit() {
   useEffect(() => {
     initAnalytics({
       domain: process.env.NEXT_PUBLIC_DOMAIN || 'https://shortdramini.com',
-      endpoint: `${process.env.NEXT_PUBLIC_API_BASE || 'https://dramini-api.onrender.com'}/analytics/track`,
+      endpoint: `${process.env.NEXT_PUBLIC_API_BASE || 'https://dramini-api.onrender.com'}/api/v1/analytics/track`,
       batchSize: 10,
       flushInterval: 2000,
       sessionTimeout: 30 * 60 * 1000,
