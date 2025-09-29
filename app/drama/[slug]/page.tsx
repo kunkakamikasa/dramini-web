@@ -512,7 +512,7 @@ export default function DramaPage() {
           </div>
 
           <div className="flex-1 p-3 lg:p-4 overflow-y-auto">
-            <div className="grid grid-cols-4 lg:grid-cols-6 gap-1 lg:gap-2">
+            <div className="grid grid-cols-6 lg:grid-cols-8 gap-1 lg:gap-2">
               <button className="aspect-square bg-gray-800 rounded-lg flex items-center justify-center text-xs font-medium text-gray-300 hover:bg-gray-700">
                 Trailer
               </button>
@@ -520,7 +520,7 @@ export default function DramaPage() {
               {titleData.episodes.slice(0, 50).map((episode) => (
                 <button
                   key={episode.id}
-                  className={`relative aspect-square rounded-lg flex items-center justify-center text-sm font-medium transition-all hover:scale-105 ${
+                  className={`relative aspect-square rounded-lg flex items-center justify-center text-xs font-medium transition-all hover:scale-105 ${
                     currentEpisode?.id === episode.id
                       ? 'bg-red-500 text-white shadow-lg shadow-red-500/50' 
                       : episode.isFree 
@@ -531,8 +531,8 @@ export default function DramaPage() {
                 >
                   {episode.episodeNum}
                   {!episode.isFree && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                      <Lock className="w-2 h-2 text-white" />
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                      <Lock className="w-1.5 h-1.5 text-white" />
                     </div>
                   )}
                 </button>
