@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import { usePageTracking, useAnalytics } from '@/hooks/useAnalytics'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -54,6 +55,12 @@ export default function DramaPage() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const progressRef = useRef<HTMLDivElement>(null)
+  
+  // 页面访问埋点
+  usePageTracking(`剧集页面: ${slug}`)
+  
+  // 埋点功能
+  const { trackVideoPlay } = useAnalytics()
   
   const [titleData, setTitleData] = useState<TitleData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -218,6 +225,11 @@ export default function DramaPage() {
         await videoRef.current.play()
         setIsPlaying(true)
         setDebugInfo('Video playing')
+        
+        // 视频播放埋点
+        if (currentEpisode && titleData) {
+          trackVideoPlay(currentEpisode.id, `${titleData.name} - 第${currentEpisode.episodeNum}集`)
+        }
       }
     } catch (error) {
       console.error('Play error:', error)

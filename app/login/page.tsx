@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Eye, EyeOff, Mail, Lock, User, RefreshCw } from 'lucide-react'
+import { usePageTracking, useAnalytics } from '@/hooks/useAnalytics'
 
 function LoginContent() {
   const router = useRouter()
@@ -17,6 +18,12 @@ function LoginContent() {
   const redirectTo = searchParams.get('redirect') || '/'
   
   const [isLogin, setIsLogin] = useState(true)
+  
+  // 页面访问埋点
+  usePageTracking('登录注册页面')
+  
+  // 埋点功能
+  const { trackLogin, trackRegistration } = useAnalytics()
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -100,6 +107,9 @@ function LoginContent() {
           localStorage.setItem('userEmail', data.email)
           localStorage.setItem('userName', data.name)
           
+          // 登录埋点
+          trackLogin(data.userId, data.email)
+          
           // 触发storage事件，通知其他组件更新登录状态
           window.dispatchEvent(new Event('storage'))
           
@@ -129,6 +139,9 @@ function LoginContent() {
           localStorage.setItem('userId', data.userId)
           localStorage.setItem('userEmail', data.email)
           localStorage.setItem('userName', data.name)
+          
+          // 注册埋点
+          trackRegistration(data.userId, data.email)
           
           // 触发storage事件，通知其他组件更新登录状态
           window.dispatchEvent(new Event('storage'))

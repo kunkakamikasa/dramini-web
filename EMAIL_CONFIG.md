@@ -153,3 +153,4 @@ NEXT_PUBLIC_WEB_BASE_URL=https://shortdramini.com
 2. 验证应用密码是否有效
 3. 确认邮箱服务商支持 SMTP
 4. 检查防火墙和网络限制
+

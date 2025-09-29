@@ -6,6 +6,7 @@ import { fetchApi } from '@/lib/api'
 import { Header } from '@/components/Header'
 import Hero from '@/components/Hero'
 import { Footer } from '@/components/Footer'
+import { usePageTracking } from '@/hooks/useAnalytics'
 
 interface Movie {
   id: string
@@ -35,6 +36,9 @@ export default function HomePage() {
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // 页面访问埋点
+  usePageTracking('ShortDramini - 首页')
 
   useEffect(() => {
     const fetchData = async () => {

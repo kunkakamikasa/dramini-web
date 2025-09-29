@@ -411,3 +411,4 @@ model UserCoins {
 
   @@map("user_coins")
 }
+
