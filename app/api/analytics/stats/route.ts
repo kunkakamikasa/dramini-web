@@ -6,20 +6,18 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const startDate = searchParams.get('startDate')
-    const endDate = searchParams.get('endDate') 
-    const granularity = searchParams.get('granularity')
-    
-    if (!startDate || !endDate || !granularity) {
-      return NextResponse.json({ 
-        error: 'Missing required parameters',
-        message: 'startDate, endDate and granularity are required'
-      }, { status: 400 })
-    }
+    const granularity = searchParams.get('granularity') || 'day'
+    const days = searchParams.get('days') || '7'
     
     const apiBase = process.env.NEXT_PUBLIC_API_BASE || 'https://dramini-api.onrender.com/api/v1'
     
-    const response = await fetch(`${apiBase}/analytics/stats?startDate=${startDate}&endDate=${endDate}&granularity=${granularity}`, {
+    // 构造URL参数，匹配后端API的期望格式
+    const params = new URLSearchParams({
+      granularity: granularity,
+      days: days
+    })
+    
+    const response = await fetch(`${apiBase}/analytics/stats?${params}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
