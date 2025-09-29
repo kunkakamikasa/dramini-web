@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { ToastProvider } from '@/components/toast-provider'
+import { AnalyticsProvider } from '@/components/AnalyticsProvider'
 
 export const metadata: Metadata = {
   title: 'Dramini',
@@ -15,8 +16,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans">
-        {children}
-        <ToastProvider />
+        <AnalyticsProvider>
+          {children}
+          <ToastProvider />
+        </AnalyticsProvider>
       </body>
     </html>
   )
