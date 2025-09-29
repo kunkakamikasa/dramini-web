@@ -106,7 +106,7 @@ export function Carousel({ items = [], title, showNavigation = true, itemsPerVie
     if (safeItems.length > 0) {
       const visibleItems = safeItems.slice(currentIndex, currentIndex + itemsPerView);
       visibleItems.forEach((item, index) => {
-        analytics.posterImpression(item.id, currentIndex + index, title || 'carousel');
+        analytics.trackEvent('poster_impression', { posterId: item.id, position: currentIndex + index, section: title || 'carousel' });
       });
     }
   }, [currentIndex, safeItems, itemsPerView, title]);

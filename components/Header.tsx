@@ -100,7 +100,7 @@ export function Header() {
   ];
 
   const handleNavClick = (name: string) => {
-    analytics.pageView(`/${name.toLowerCase().replace(' ', '-')}`);
+    analytics.trackPageView(`/${name.toLowerCase().replace(' ', '-')}`, name);
     setIsMobileMenuOpen(false);
   };
 
@@ -154,7 +154,7 @@ export function Header() {
             <Link 
               href="/" 
               className="text-2xl font-bold text-red-500 hover:text-red-400 transition-colors"
-              onClick={() => analytics.pageView('/')}
+              onClick={() => analytics.trackPageView('/', 'ShortDramini - 首页')}
             >
               Dramini
             </Link>

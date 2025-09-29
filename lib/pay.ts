@@ -72,7 +72,7 @@ export const paymentPlans: PaymentPlan[] = [
 // Stripe integration
 export async function startStripeCheckout(payload: { tierKey: string; userId: string }) {
   try {
-    analytics.checkoutStart(payload.tierKey, 0); // priceCents 现在由服务端决定
+    analytics.trackEvent('checkout_start', { tierKey: payload.tierKey });
     
     const response = await fetch(`${API_BASE}/user/purchase/checkout/stripe`, {
       method: 'POST',
@@ -98,7 +98,7 @@ export async function startStripeCheckout(payload: { tierKey: string; userId: st
     
   } catch (error) {
     console.error('Stripe checkout error:', error);
-    analytics.error('stripe_checkout_failed', error instanceof Error ? error.message : 'Payment failed');
+    analytics.trackEvent('payment_error', { provider: 'stripe', error: error instanceof Error ? error.message : 'Payment failed' });
     throw error;
   }
 }
@@ -106,7 +106,7 @@ export async function startStripeCheckout(payload: { tierKey: string; userId: st
 // PayPal integration
 export async function startPayPalCheckout(payload: { tierKey: string; userId: string }) {
   try {
-    analytics.checkoutStart(payload.tierKey, 0); // priceCents 现在由服务端决定
+    analytics.trackEvent('checkout_start', { tierKey: payload.tierKey });
     
     const response = await fetch(`${API_BASE}/user/purchase/checkout/paypal`, {
       method: 'POST',
@@ -138,7 +138,7 @@ export async function startPayPalCheckout(payload: { tierKey: string; userId: st
     
   } catch (error) {
     console.error('PayPal payment error:', error);
-    analytics.error('paypal_checkout_failed', error instanceof Error ? error.message : 'Payment failed');
+    analytics.trackEvent('payment_error', { provider: 'paypal', error: error instanceof Error ? error.message : 'Payment failed' });
     throw error;
   }
 }
@@ -162,7 +162,7 @@ export async function capturePayPalPayment(orderId: string) {
     
     // Track success event
     if (data.success) {
-      analytics.checkoutSuccess('paypal', 0, orderId);
+      analytics.trackPurchase(orderId, 0, 'USD', 'paypal');
     }
     
     return data;
@@ -222,7 +222,7 @@ export async function verifyStripePayment(sessionId: string) {
     
     // Track success event
     if (data.success) {
-      analytics.checkoutSuccess('stripe', 0, sessionId);
+      analytics.trackPurchase(sessionId, 0, 'USD', 'stripe');
     }
     
     return data;
@@ -250,7 +250,7 @@ export async function verifyPayPalPayment(orderId: string) {
     
     // Track success event
     if (data.success) {
-      analytics.checkoutSuccess('paypal', 0, orderId);
+      analytics.trackPurchase(orderId, 0, 'USD', 'paypal');
     }
     
     return data;
@@ -279,7 +279,7 @@ export async function handlePaymentSuccess(sessionId: string, provider: 'stripe'
 
 // Payment cancellation handler
 export function handlePaymentCancel(planId: string): void {
-  analytics.checkoutCancel(planId, getPlanPrice(planId));
+  analytics.trackEvent('checkout_cancel', { planId, price: getPlanPrice(planId) });
 }
 
 // Subscription management

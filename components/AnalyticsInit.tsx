@@ -6,7 +6,7 @@ import { analytics } from '@/lib/analytics';
 export function AnalyticsInit() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      analytics.pageView(window.location.pathname, document.title);
+      analytics.trackPageView(window.location.pathname, document.title);
     }
   }, []);
 

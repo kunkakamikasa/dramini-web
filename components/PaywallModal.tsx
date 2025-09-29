@@ -12,7 +12,7 @@ import { startStripeCheckout, startPayPalCheckout } from '@/lib/pay';
 
 export function PaywallModal({ isOpen, onClose, title, episode, onUnlock }: PaywallModalProps) {
   const handleUnlock = (type: 'single' | 'season' | 'vip') => {
-    analytics.paywallOpen(title.id, episode);
+    analytics.trackEvent('paywall_open', { titleId: title.id, episode });
     onUnlock?.(type);
   };
 

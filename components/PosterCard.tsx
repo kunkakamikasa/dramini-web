@@ -13,19 +13,19 @@ export function PosterCard({ poster, index = 0, section = 'unknown', onWatch, on
   const [isHovered, setIsHovered] = useState(false);
 
   const handleCardClick = () => {
-    analytics.posterClick(poster.id, index, section);
+    analytics.trackEvent('poster_click', { posterId: poster.id, index, section });
     onWatch?.(poster);
   };
 
   const handlePlayClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    analytics.posterClick(poster.id, index, section);
+    analytics.trackEvent('poster_click', { posterId: poster.id, index, section });
     onWatch?.(poster);
   };
 
   const handleUnlockClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    analytics.posterClick(poster.id, index, section);
+    analytics.trackEvent('poster_click', { posterId: poster.id, index, section });
     onUnlock?.(poster);
   };
 

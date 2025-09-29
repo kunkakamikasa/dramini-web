@@ -21,7 +21,7 @@ export function PlanPicker({ plans, selectedPlan, onPlanSelect, onCheckout }: Pl
     if (localSelectedPlan) {
       const plan = plans.find(p => p.id === localSelectedPlan);
       if (plan) {
-        analytics.checkoutStart(plan.id, plan.priceCents);
+        analytics.trackEvent('checkout_start', { planId: plan.id, priceCents: plan.priceCents });
         onCheckout(plan.id);
       }
     }

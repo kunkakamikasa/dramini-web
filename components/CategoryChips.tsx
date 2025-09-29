@@ -30,7 +30,7 @@ export function CategoryChips({
       p.delete(paramKey); // 再次点击清除筛选
     }
     router.push(`?${p.toString()}`, { scroll: false });
-    analytics.categorySelect(value);
+    analytics.trackEvent('category_select', { category: value });
   };
 
   const options: ChipOption[] = useMemo(() => 
