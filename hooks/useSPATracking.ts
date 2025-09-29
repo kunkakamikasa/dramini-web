@@ -112,5 +112,5 @@ export function trackRouteChange(path: string, title?: string) {
     return
   }
   
-  analytics.trackEvent("page_view", {path, path: path, title: title, referrer: document.referrer })
+  analytics.trackEvent("manual_page_view", { path: path, title: title, referrer: document.referrer })
 }

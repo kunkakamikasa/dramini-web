@@ -154,7 +154,7 @@ export function Header() {
             <Link 
               href="/" 
               className="text-2xl font-bold text-red-500 hover:text-red-400 transition-colors"
-              onClick={() => analytics.trackEvent("page_navigation", {'/', 'ShortDramini - 首页')}
+              onClick={() => analytics.trackEvent("page_navigation", { path: "/", title: "ShortDramini - 首页" })}
             >
               Dramini
             </Link>
