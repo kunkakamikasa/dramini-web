@@ -1,0 +1,1 @@
+{"version":1,"functions":{"/api/analytics/overview":{},"/api/analytics/compare/[...params]":{},"/api/auth/register":{},"/api/analytics/stats":{},"/api/user/profile":{},"/api/auth/login":{},"/api/auth/verify-email":{}}}
