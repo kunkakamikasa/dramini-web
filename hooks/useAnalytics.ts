@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import { getAnalytics } from '@/lib/analostics'
+import { getAnalytics } from '@/lib/analytics'
 import { usePageTracking as useSPAtracking } from '@/hooks/useSPATracking'
 
 // 保留向后兼容的usePageTracking
